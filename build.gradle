@@ -28,7 +28,8 @@ jacocoTestReport {
      
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['minesweeper/App*', 'minesweeper/gui/**', 'minesweeper/TestApp*'])
+            fileTree(dir: it, exclude: ['minesweeper/App*', 'minesweeper/gui/**', 'minesweeper/TestApp*', 
+            'minesweeper/StorageSingle*', 'minesweeper/model/**', 'minesweeper/generator/**'])
         }))
     } 
 }
