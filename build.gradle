@@ -51,6 +51,9 @@ dependencies {
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:28.0-jre'
 
+    // Temporarily a library for constraint satisfaction solving
+    implementation 'org.choco-solver:choco-solver:4.10.3'
+
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 }
