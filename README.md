@@ -11,3 +11,4 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
 
 - Weekly reports
   - [Week one](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-1-report.md)
+  - [Week two](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-2-report.md)
