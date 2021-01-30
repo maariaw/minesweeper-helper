@@ -4,7 +4,7 @@
 
 #### I set up Travis CI and Codecov for the project
 
-I configured Jacoco so that only the `bot` package coverage is reported, to get a more accurate view of my own testing progress. I tried to find a way to set it up so I could show the total coverage and the bot coverage both as separate badges on README, but didn't succeed.
+I configured Jacoco so that only the `bot` package coverage is reported, to get a more accurate view of my own testing progress. I tried to find a way to set it up so I could show the total coverage and the bot coverage both as separate badges on README, but didn't succeed. Checkstyle was already configured in the template.
 
 #### I tried to use a library to make a draft of the solver
 
@@ -13,6 +13,10 @@ I found Java libraries that should help with solving constraint satisfaction pro
 #### I made a first implementation of CSP solver
 
 I found a video that teaches how to code a CSP solver in Python. I think I managed to imitate it in Java pretty well. It's just the bare bones for this algorithm for now. I created the required classes and call it from the method that should return highlighted possible moves. For now it prints out a suggested solution. It does identify correctly the squares that definitely do have mines or don't have mines. But for the ones that are actually guesswork it just assigns the first value that it could possibly be. I need to make it differentiate between surefire squares and guesses. It also needs a lot of other work before being even close to the Studholme algorithm.
+
+#### I created unit tests
+
+I didn't yet manage to *comprehensively* unit test all the code I wrote. The core also doesn't yet work quite as I hope the finished algorithm to work, so I will have to think about what kinds of unit tests are most useful. The most exciting test is always running the game and seeing if my bot correctly identifies definite mines and safe squares. But I will put more effort into automated testing next week.
 
 ### What did I learn?
 

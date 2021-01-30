@@ -66,4 +66,8 @@ public class CSP<V, D> {
         
         return null;
     }
+
+    public HashMap<V, ArrayList<Constraint<V, D>>> getConstraints() {
+        return constraints;
+    }
 }

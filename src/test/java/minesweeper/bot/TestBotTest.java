@@ -23,7 +23,7 @@ public class TestBotTest {
     private Board board;
     @Before
     public void setUp() {
-        this.bot = BotSelect.getBot();
+        this.bot = new TestBot();
         this.generator = new MinefieldGenerator();
         this.board = new Board(generator, 10, 10, 3);
     }
