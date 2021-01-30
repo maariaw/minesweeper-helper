@@ -16,7 +16,7 @@ The bot receives a [*Board*](https://github.com/maariaw/minesweeper-helper/blob/
 
 ## Time and space complexities
 
-With 7 steps, some of which only apply to certain situations, the algorithm is too complicated for me to even guess at the O-notation beforehand. I will update this part as I attempt to write the code and gain understanding of the inner workings.
+I don't have all the steps figured out yet, but I can make some estimates. So far the most time-intensive part of the CSP implementation I'm making is the backtracking search. For each square that is relevant in the current situation, it assigns one of two values, and goes potentially through all combinations. The number of squares is not in direct correlation with the total number of squares on a board, but that's a convenient maximum for it. Thus the time complexity is O(2<sup>n</sup>). I would assume the space complexity is n, but I will need to verify that estimate after I code my own implementations of the data structures.
 
 ## Sources
 
