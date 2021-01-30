@@ -3,6 +3,7 @@ package minesweeper.bot;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.HashMap;
 import minesweeper.model.Board;
 import minesweeper.model.GameStats;
 import minesweeper.model.Move;
@@ -69,27 +70,64 @@ public class MyBot implements Bot {
     public ArrayList<Move> getPossibleMoves(Board board) {
         ArrayList<Move> movesToMake = new ArrayList<>();
         
+        HashSet<Square> indicators = new HashSet<>();
         
+        // Gets the open squares of the board that have mines around them
+        for (Square square : board.getOpenSquares()) {
+            if (square.surroundingMines() != 0) {
+                indicators.add(square);
+            }
+        }
         
+        // The CSP variables are all unopened squares next to indicator squares
+        // Can we collect the unopened squares by their indicator to get the constraint
+        // groups at the same time?
+        HashSet<Square> variables = new HashSet<>();
+        ArrayList<MinesweeperConstraint> constraintList = new ArrayList<>();
+        for (Square indicator : indicators) {
+            int number = indicator.surroundingMines();
+            ArrayList<Square> constraintVars = new ArrayList<>();
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    int currentX = indicator.getX() + x;
+                    int currentY = indicator.getY() + y;
+                    if (board.withinBoard(currentX, currentY)) {
+                        Square candidate = board.getSquareAt(currentX, currentY);
+                        if (!candidate.isOpened()) {
+                            variables.add(candidate);
+                            constraintVars.add(candidate);
+                        }
+                    }
+                }
+            }
+            MinesweeperConstraint newConstraint = new MinesweeperConstraint(number, constraintVars);
+            constraintList.add(newConstraint);
+        }
+        ArrayList<Square> variableList = new ArrayList<>(variables);
         
+        // Domains for CSP is a hashmap of values and lists containing 0 and 1.
+        HashMap<Square, ArrayList<Integer>> domains = new HashMap<>();
+        for (Square variable : variables) {
+            ArrayList<Integer> domainValues = new ArrayList<>();
+            domainValues.add(0);
+            domainValues.add(1);
+            domains.put(variable, domainValues);
+        }
         
+        // Now we can construct CSP
+        CSP solver = new CSP(variableList, domains);
+        // And add the constraints
+        for (MinesweeperConstraint constraint : constraintList) {
+            solver.addConstraint(constraint);
+        }
         
-//        HashSet<Square> indicators = new HashSet<>();
-//        
-//        // Gets the open squares of the board that have mines around them
-//        for (Square square : board.getOpenSquares()) {
-//            if (square.surroundingMines() != 0) {
-//                indicators.add(square);
-//            }
-//        }
-//        
-//        // Sets all variables to -999 representing unknown
-//        int[][] variables = new int[board.width][board.height];
-//        for (int x = 0; x < board.width; x++) {
-//            for (int y = 0; y < board.height; y++) {
-//                variables[x][y] = -999;
-//            }
-//        }
+        HashMap<Square, Integer> template = new HashMap<>();
+        HashMap<Square, Integer> solution = solver.backtrackingSearch(template);
+        
+        for (Square square : solution.keySet()) {
+            System.out.println("Ruutu (" + square.getX() + ", " + square.getY() + "): " + solution.get(square));
+        }
+        
         
         return movesToMake;
     }
