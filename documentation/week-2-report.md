@@ -28,6 +28,6 @@ I also reviewed what I've previously studied about time and space complexities t
 
 ### What remains unclear?
 
-Much is still unclear, but I'm very glad with my progress.
+Much is still unclear, but I'm very glad with my progress. I notice that the setup required for unit testing these CSP classes is challenging. I'm also not sure if I should test the move suggestions my bot makes against actual existence of mines on each square, or just that it follows the intended logic.
 
-### Hours worked: 12
+### Hours worked: 13
