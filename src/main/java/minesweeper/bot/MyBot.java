@@ -120,14 +120,35 @@ public class MyBot implements Bot {
             solver.addConstraint(constraint);
         }
         
-        // Excecute the search for solution
+        // Excecute the search for solutions
         HashMap<Square, Integer> template = new HashMap<>();
-        HashMap<Square, Integer> solution = solver.backtrackingSearch(template);
+        ArrayList<HashMap> solutions = solver.startSearch(template);
+        if (solutions.isEmpty()) return movesToMake;
         
-        for (Square square : solution.keySet()) {
-            System.out.println("Ruutu (" + square.getX() + ", " + square.getY() + "): " + solution.get(square));
+        // I need to find the assigments that are shared with all the solutions
+        for (Square square : variableList) {
+            int squareSolutions = 0;
+            int mineSolutions = 0;
+            for (HashMap solution : solutions) {
+                squareSolutions++;
+                if ((Integer) solution.get(square) == 1) {
+                    mineSolutions++;
+                }
+            }
+            // If all solutions say mine, add a red highlight move to the
+            // suggested moves list, if all say no mine, make it green
+            int moveX = square.getX();
+            int moveY = square.getY();
+            Move moveToMake;
+            if (mineSolutions == squareSolutions) {
+                moveToMake = new Move(moveX, moveY, Highlight.RED);
+            } else if (mineSolutions == 0) {
+                moveToMake = new Move(moveX, moveY, Highlight.GREEN);
+            } else {
+                moveToMake = new Move(moveX, moveY, Highlight.BLACK);
+            }
+            movesToMake.add(moveToMake);
         }
-        
         
         return movesToMake;
     }

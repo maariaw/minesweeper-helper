@@ -9,6 +9,7 @@ public class CSP<V, D> {
     private ArrayList<V> variables;
     private HashMap<V, ArrayList<D>> domains;
     private HashMap<V, ArrayList<Constraint<V, D>>> constraints;
+    ArrayList<HashMap> solutions;
 
     public CSP(ArrayList<V> variables, HashMap<V, ArrayList<D>> domains) {
         this.variables = variables;
@@ -42,29 +43,30 @@ public class CSP<V, D> {
         return true;
     }
     
-    public HashMap<V, D> backtrackingSearch(HashMap<V, D> assignment) {
+    public ArrayList<HashMap> startSearch(HashMap<V, D> assignment) {
+        solutions = new ArrayList<>();
+        backtrackingSearch(assignment);
+        return solutions;
+    }
+
+    public void backtrackingSearch(HashMap<V, D> assignment) {
         if (assignment.keySet().size() == this.variables.size()) {
-            return assignment;
+            solutions.add(new HashMap(assignment));
+            return;
         }
-        
+
         ArrayList<V> unassigned = this.variables.stream()
                 .filter((variable) -> (!assignment.containsKey(variable)))
                 .collect(Collectors.toCollection(ArrayList::new));
-        
+
         V first = unassigned.get(0);
         for (D domainValue : this.domains.get(first)) {
             HashMap<V, D> localAssignment = new HashMap(assignment);
             localAssignment.put(first, domainValue);
             if (isConsistent(first, localAssignment)) {
-                HashMap<V, D> solution = backtrackingSearch(localAssignment);
-                if (solution != null) {
-                    return solution;
-                }
+                backtrackingSearch(localAssignment);
             }
-            
         }
-        
-        return null;
     }
 
     public HashMap<V, ArrayList<Constraint<V, D>>> getConstraints() {
