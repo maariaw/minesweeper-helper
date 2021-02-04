@@ -70,4 +70,8 @@ public class CSP<V, D> {
     public HashMap<V, ArrayList<Constraint<V, D>>> getConstraints() {
         return constraints;
     }
+
+    public ArrayList<V> getVariables() {
+        return variables;
+    }
 }

@@ -79,9 +79,8 @@ public class MyBot implements Bot {
             }
         }
         
-        // The CSP variables are all unopened squares next to indicator squares
-        // Can we collect the unopened squares by their indicator to get the constraint
-        // groups at the same time?
+        // The CSP variables are all unopened squares next to indicator squares.
+        // Collect the unopened squares by their indicator to get the constraint groups
         HashSet<Square> variables = new HashSet<>();
         ArrayList<MinesweeperConstraint> constraintList = new ArrayList<>();
         for (Square indicator : indicators) {
@@ -121,6 +120,7 @@ public class MyBot implements Bot {
             solver.addConstraint(constraint);
         }
         
+        // Excecute the search for solution
         HashMap<Square, Integer> template = new HashMap<>();
         HashMap<Square, Integer> solution = solver.backtrackingSearch(template);
         
