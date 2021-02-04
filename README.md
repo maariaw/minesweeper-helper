@@ -12,3 +12,11 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
 - Weekly reports
   - [Week one](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-1-report.md)
   - [Week two](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-2-report.md)
+  - [Week three](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-3-report.md)
+  
+## Tests and checks
+
+For testing coverage, click the Codecov badge under the title of this document. Alternatively, you can run `$ ./gradlew test` and `$ ./gradlew jacocoTestReport` at the root of the project, and then see `build/reports/jacoco/test/html/index.html`.
+
+For a Checkstyle report, do `$ ./gradlew check` at the root of the project and then see `build/reports/checkstyle/main.html`.
+
