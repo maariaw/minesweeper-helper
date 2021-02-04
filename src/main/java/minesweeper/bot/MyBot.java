@@ -28,6 +28,7 @@ public class MyBot implements Bot {
 
     private Random rng = new Random();
     private GameStats gameStats;
+    private CSP csp;
 
     /**
      * Make a single decision based on the given Board state [[DUMMY]]
@@ -36,33 +37,49 @@ public class MyBot implements Bot {
      */
     @Override
     public Move makeMove(Board board) {
-        // Find the coordinate of an unopened square
-        Pair<Integer> pair = findUnopenedSquare(board);
-        int x = (int) pair.first;
-        int y = (int) pair.second;
-
-        // The TestBot isn't very smart and randomly
-        // decides what move should be made using java.util.Random
-        Integer type = rng.nextInt(10);
-
-        // Certain move types are given more weight
-        // but these moves are still extremely random
-        // and most likely not correct
-        if (type < 5) {
-            return new Move(MoveType.OPEN, x, y);
-        } else if (type < 8) {
-            return new Move(MoveType.FLAG, x, y);
-        } else {
-            if (rng.nextInt(2) == 0) {
-                return new Move(x, y, Highlight.GREEN);
-            } else {
-                return new Move(x, y, Highlight.RED);
+        // Since this implementation of minesweeper quarantees a safe zone of 9
+        // squares, my intuition is to start at a place where there's room for
+        // squares around the safe zone, to make most educated next move
+        if (board.firstMove) {
+            for (int i = 2; i >= 0; i--) {
+                if (board.withinBoard(i, i)) {
+                    return new Move(MoveType.OPEN, i, i);
+                }
             }
         }
+
+        // Make an opening move based on the list of possible moves csp creates
+        ArrayList<Move> movesToMake = getPossibleMoves(board);
+        for (Move move : movesToMake) {
+            if (move.highlight.equals(Highlight.GREEN)) {
+                return new Move(MoveType.OPEN, move.x, move.y);
+            }
+        }
+
+        // Failing to find a safe move, for now the bot will just open an unsafe one
+        // In the future, the guess should be informed by probabilities
+        for (Move move : movesToMake) {
+            if (move.highlight.equals(Highlight.BLACK)) {
+                return new Move(MoveType.OPEN, move.x, move.y);
+            }
+        }
+
+        // Any valid square
+        Pair<Integer> where = new Pair(0, 0);
+        for (int x = 0; x < board.width; x++) {
+            for (int y = 0; y < board.height; y++) {
+                Square here = board.getSquareAt(x, y);
+                if (!board.getOpenSquares().contains(here)) {
+                    where = new Pair(x, y);
+                }
+            }
+        }
+        return new Move(MoveType.OPEN, where.first, where.second);
     }
+
     /**
      * Return multiple possible moves to make based on current board state.
-     * Suggested to be used for a "helper" bot to provide multiple highlights at once.
+     * Used by a helper bot to provide multiple highlights at once.
      * @param board The current board state.
      * @return List of moves for current board.
      */
@@ -123,7 +140,9 @@ public class MyBot implements Bot {
         // Excecute the search for solutions
         HashMap<Square, Integer> template = new HashMap<>();
         ArrayList<HashMap> solutions = solver.startSearch(template);
-        if (solutions.isEmpty()) return movesToMake;
+        if (solutions.isEmpty()) {
+            return movesToMake;
+        }
         
         // I need to find the assigments that are shared with all the solutions
         for (Square square : variableList) {
@@ -161,33 +180,36 @@ public class MyBot implements Bot {
         this.gameStats = gameStats;
     }
 
-    /**
-     * Find the (X, Y) coordinate pair of an unopened square
-     * from the current board
-     * @param board The current board state
-     * @return An (X, Y) coordinate pair
-     */
-    public Pair<Integer> findUnopenedSquare(Board board) {
-        Boolean unOpenedSquare = false;
-
-        // board.getOpenSquares allows access to already opened squares
-        HashSet<Square> opened = board.getOpenSquares();
-        int x;
-        int y;
-
-        Pair<Integer> pair = new Pair<>(0, 0);
-
-        // Randomly generate X,Y coordinate pairs that are not opened
-        while (!unOpenedSquare) {
-            x = rng.nextInt(board.width);
-            y = rng.nextInt(board.height);
-            if (!opened.contains(board.board[x][y])) {
-                unOpenedSquare = true;
-                pair = new Pair<Integer>(x, y);
+    public CSP createCsp(Board board) {
+        // The variables are all the unopened squares of the board
+        ArrayList<Square> variableList = new ArrayList<>();
+        for (int x = 0; x < board.width; x++) {
+            for (int y = 0; y < board.height; y++) {
+                Square square = board.getSquareAt(x, y);
+                if (!board.getOpenSquares().contains(square)) {
+                    variableList.add(square);
+                }
             }
         }
+        // Domains for CSP is a hashmap of values and lists containing 0 and 1.
+        HashMap<Square, ArrayList<Integer>> domains = new HashMap<>();
+        for (Square variable : variableList) {
+            ArrayList<Integer> domainValues = new ArrayList<>();
+            domainValues.add(0);
+            domainValues.add(1);
+            domains.put(variable, domainValues);
+        }
 
-        // This pair should point to an unopened square now
-        return pair;
-    } 
+        return new CSP(variableList, domains);
+    }
+
+    public HashSet<Square> getConstrainingSquares(Board board) {
+        HashSet<Square> constrainingSquares = new HashSet<>();
+        for (Square square : board.getOpenSquares()) {
+            if (square.surroundingMines() != 0) {
+                constrainingSquares.add(square);
+            }
+        }
+        return constrainingSquares;
+    }
 }
