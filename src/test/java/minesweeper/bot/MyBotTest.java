@@ -45,7 +45,7 @@ public class MyBotTest {
 
     @Test
     public void makeMoveMakesLaterMovesWithinBoard() {
-        this.board.makeMove(new Move(MoveType.OPEN, 2, 2));
+        this.board.makeMove(this.bot.makeMove(this.board));
         Move move = this.bot.makeMove(this.board);
         assertTrue(move.x >= 0 && move.x < 10);
         assertTrue(move.y >= 0 && move.y < 10);
