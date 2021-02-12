@@ -1,7 +1,6 @@
 package minesweeper.bot;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.ArrayList;
 import java.util.HashMap;
 import minesweeper.model.Board;
@@ -9,7 +8,6 @@ import minesweeper.model.GameStats;
 import minesweeper.model.Move;
 import minesweeper.model.MoveType;
 import minesweeper.model.Highlight;
-import minesweeper.model.Pair;
 import minesweeper.model.Square;
 
 
