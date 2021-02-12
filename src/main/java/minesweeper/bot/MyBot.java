@@ -17,158 +17,118 @@ import minesweeper.model.Square;
  * A bot that calculates the best possible moves for playing minesweeper.
  *
  * <p>
- * The Bot will be called externally (the interface for this is the makeMove()
- * function) and be given the current game state represented by a Board object.
- * The bot determines the best action to take by returning a Move object, which represents
- * one action that can be executed onto the board. Refer to model/Move.java for
- * details.
+ * There are two ways to call MyBot. The methods are given a Board object, that
+ * represents the current state of the game. MyBot finds possible solutions for
+ * the situation and whether some squares are certainly not mines. The makeMove()
+ * method returns a Move object representing the opening of one of such squares,
+ * or another square if no safe squares were determined. GetPossibleMoves() method
+ * returns a list of Move objects with the Highlight property. Move objects with
+ * green highlight are created for squares that are determined not to be mines.
+ * Certain mines are given red highlight and undetermined squares a black highlight.
+ * Refer to model/Move.java for details.
  * </p>
  */
 public class MyBot implements Bot {
 
-    private Random rng = new Random();
     private GameStats gameStats;
     private CSP csp;
+    private HashSet<Square> numberSquares;
 
     /**
-     * Make a single decision based on the given Board state [[DUMMY]]
+     * Make a single decision based on the given Board state
      * @param board The current board state
      * @return Move to be made onto the board
      */
     @Override
     public Move makeMove(Board board) {
-        // Since this implementation of minesweeper quarantees a safe zone of 9
-        // squares, my intuition is to start at a place where there's room for
-        // squares around the safe zone, to make most educated next move
+        HashSet<Square> currentConstrainedSquares = new HashSet<>();
+
         if (board.firstMove) {
-            for (int i = 2; i >= 0; i--) {
-                if (board.withinBoard(i, i)) {
-                    return new Move(MoveType.OPEN, i, i);
+            return getFirstMove(board);
+        } else {
+            // If it's not the first move, update csp with new constraints and constrained squares.
+            for (Square square : getConstrainingSquares(board)) {
+                ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
+                currentConstrainedSquares.addAll(constrainedBySquare);
+                if (!numberSquares.contains(square)) {
+                    MinesweeperConstraint newConstraint = 
+                            new MinesweeperConstraint(square.surroundingMines(),
+                                    constrainedBySquare);
+                    numberSquares.add(square);
+                    csp.addConstraint(newConstraint);
                 }
             }
         }
 
         // Make an opening move based on the list of possible moves csp creates
-        ArrayList<Move> movesToMake = getPossibleMoves(board);
-        for (Move move : movesToMake) {
-            if (move.highlight.equals(Highlight.GREEN)) {
-                return new Move(MoveType.OPEN, move.x, move.y);
+        // Opening move is created for the first safe square in the solution summary
+        HashMap<Square, Integer> solutionSummary = csp.findSafeSolutions(currentConstrainedSquares);
+        for (Square square : solutionSummary.keySet()) {
+            if (solutionSummary.get(square).equals(0)) {
+                return new Move(MoveType.OPEN, square.getX(), square.getY());
             }
         }
 
-        // Failing to find a safe move, for now the bot will just open an unsafe one
-        // In the future, the guess should be informed by probabilities
-        for (Move move : movesToMake) {
-            if (move.highlight.equals(Highlight.BLACK)) {
-                return new Move(MoveType.OPEN, move.x, move.y);
+        // Opening the square that has the least likelihood of being mine
+        // This does not yet account for the probability of squares further away being mines
+        Integer lowestLikelihood = 100;
+        Square leastLikelyMine = new Square(0, 0);
+        for (Square square : solutionSummary.keySet()) {
+            if (solutionSummary.get(square) <= lowestLikelihood) {
+                lowestLikelihood = solutionSummary.get(square);
+                leastLikelyMine = square;
             }
         }
-
-        // Any valid square
-        Pair<Integer> where = new Pair(0, 0);
-        for (int x = 0; x < board.width; x++) {
-            for (int y = 0; y < board.height; y++) {
-                Square here = board.getSquareAt(x, y);
-                if (!board.getOpenSquares().contains(here)) {
-                    where = new Pair(x, y);
-                }
-            }
-        }
-        return new Move(MoveType.OPEN, where.first, where.second);
+        return new Move(MoveType.OPEN, leastLikelyMine.getX(), leastLikelyMine.getY());
     }
 
     /**
-     * Return multiple possible moves to make based on current board state.
-     * Used by a helper bot to provide multiple highlights at once.
+     * Return multiple highlight moves based on current board state.
+     * 
+     * Highlight moves for all squares surrounding opened squares are generated.
+     * Green highlight indicates a safe square, red highlight a mine square.
+     * Squares that could be either are given a black highlight (not visible in
+     * current UI).
+     * 
      * @param board The current board state.
-     * @return List of moves for current board.
+     * @return List of highlight moves for current board.
      */
     @Override
     public ArrayList<Move> getPossibleMoves(Board board) {
         ArrayList<Move> movesToMake = new ArrayList<>();
         
-        HashSet<Square> indicators = new HashSet<>();
-        
-        // Gets the open squares of the board that have mines around them
-        for (Square square : board.getOpenSquares()) {
-            if (square.surroundingMines() != 0) {
-                indicators.add(square);
-            }
+        // Creates a new csp and finds all the constraints
+        CSP solver = createCsp(board);
+        HashSet<Square> constrainedSquares = new HashSet<>();
+        for (Square square : getConstrainingSquares(board)) {
+            ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
+            constrainedSquares.addAll(constrainedBySquare);
+            MinesweeperConstraint newConstraint = 
+                            new MinesweeperConstraint(square.surroundingMines(),
+                                    constrainedBySquare);
+                    solver.addConstraint(newConstraint);
         }
-        
-        // The CSP variables are all unopened squares next to indicator squares.
-        // Collect the unopened squares by their indicator to get the constraint groups
-        HashSet<Square> variables = new HashSet<>();
-        ArrayList<MinesweeperConstraint> constraintList = new ArrayList<>();
-        for (Square indicator : indicators) {
-            int number = indicator.surroundingMines();
-            ArrayList<Square> constraintVars = new ArrayList<>();
-            for (int x = -1; x <= 1; x++) {
-                for (int y = -1; y <= 1; y++) {
-                    int currentX = indicator.getX() + x;
-                    int currentY = indicator.getY() + y;
-                    if (board.withinBoard(currentX, currentY)) {
-                        Square candidate = board.getSquareAt(currentX, currentY);
-                        if (!candidate.isOpened()) {
-                            variables.add(candidate);
-                            constraintVars.add(candidate);
-                        }
-                    }
-                }
-            }
-            MinesweeperConstraint newConstraint = new MinesweeperConstraint(number, constraintVars);
-            constraintList.add(newConstraint);
-        }
-        ArrayList<Square> variableList = new ArrayList<>(variables);
-        
-        // Domains for CSP is a hashmap of values and lists containing 0 and 1.
-        HashMap<Square, ArrayList<Integer>> domains = new HashMap<>();
-        for (Square variable : variables) {
-            ArrayList<Integer> domainValues = new ArrayList<>();
-            domainValues.add(0);
-            domainValues.add(1);
-            domains.put(variable, domainValues);
-        }
-        
-        // Now we can construct CSP
-        CSP solver = new CSP(variableList, domains);
-        // And add the constraints
-        for (MinesweeperConstraint constraint : constraintList) {
-            solver.addConstraint(constraint);
-        }
-        
+
         // Excecute the search for solutions
-        HashMap<Square, Integer> template = new HashMap<>();
-        ArrayList<HashMap> solutions = solver.startSearch(template);
-        if (solutions.isEmpty()) {
+        HashMap<Square, Integer> solutionSummary = solver.findSafeSolutions(constrainedSquares);
+        if (solutionSummary.isEmpty()) {
             return movesToMake;
         }
         
-        // I need to find the assigments that are shared with all the solutions
-        for (Square square : variableList) {
-            int squareSolutions = 0;
-            int mineSolutions = 0;
-            for (HashMap solution : solutions) {
-                squareSolutions++;
-                if ((Integer) solution.get(square) == 1) {
-                    mineSolutions++;
-                }
-            }
-            // If all solutions say mine, add a red highlight move to the
-            // suggested moves list, if all say no mine, make it green
+        // Adding moves according to the solution summary
+        for (Square square : solutionSummary.keySet()) {
             int moveX = square.getX();
             int moveY = square.getY();
             Move moveToMake;
-            if (mineSolutions == squareSolutions) {
+            if (solutionSummary.get(square).equals(100)) {
                 moveToMake = new Move(moveX, moveY, Highlight.RED);
-            } else if (mineSolutions == 0) {
+            } else if (solutionSummary.get(square).equals(0)) {
                 moveToMake = new Move(moveX, moveY, Highlight.GREEN);
             } else {
                 moveToMake = new Move(moveX, moveY, Highlight.BLACK);
             }
             movesToMake.add(moveToMake);
         }
-        
         return movesToMake;
     }
 
@@ -180,7 +140,38 @@ public class MyBot implements Bot {
         this.gameStats = gameStats;
     }
 
-    public CSP createCsp(Board board) {
+    /**
+     * Handle the first move on a board.
+     *
+     * For efficiency, this method creates and saves a CSP object to be used
+     * for subsequent calls of the makeMove() method.
+     *
+     * Since this implementation of minesweeper guarantees a safe zone of 9
+     * squares, MyBot starts at a place where there's room for squares around
+     * the safe zone, to make the most educated next move.
+     *
+     * @param board The current board state
+     * @return An opening move near the upper left corner of the board
+     */
+    private Move getFirstMove(Board board) {
+        this.csp = createCsp(board);
+        this.numberSquares = new HashSet<>();
+        Move firstMove = new Move(MoveType.OPEN, 0, 0);
+
+        for (int i = 2; i > 0; i--) {
+            if (board.withinBoard(i, i)) {
+                firstMove = new Move(MoveType.OPEN, i, i);
+            }
+        }
+        return firstMove;
+    }
+
+    /**
+     * Create a CSP object based on the Board object given as a parameter.
+     * @param board Current state of the board
+     * @return A CSP object corresponding to the board
+     */
+    private CSP createCsp(Board board) {
         // The variables are all the unopened squares of the board
         ArrayList<Square> variableList = new ArrayList<>();
         for (int x = 0; x < board.width; x++) {
@@ -203,7 +194,12 @@ public class MyBot implements Bot {
         return new CSP(variableList, domains);
     }
 
-    public HashSet<Square> getConstrainingSquares(Board board) {
+    /**
+     * Find all the squares on the board that are opened and have an indicator number
+     * @param board Current state of the board
+     * @return A set of opened squares that have mines around them
+     */
+    private HashSet<Square> getConstrainingSquares(Board board) {
         HashSet<Square> constrainingSquares = new HashSet<>();
         for (Square square : board.getOpenSquares()) {
             if (square.surroundingMines() != 0) {
@@ -211,5 +207,28 @@ public class MyBot implements Bot {
             }
         }
         return constrainingSquares;
+    }
+
+    /**
+     * Find all the unopened squares around the given square on the given board
+     * @param board The current state of the board
+     * @param constrainingSquare A square whose surrounding squares are to be found
+     * @return A list of unopened squares around the given square
+     */
+    private ArrayList<Square> getConstrainedSquares(Board board, Square constrainingSquare) {
+        ArrayList<Square> constrainedSquares = new ArrayList<>();
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                int currentX = constrainingSquare.getX() + x;
+                int currentY = constrainingSquare.getY() + y;
+                if (board.withinBoard(currentX, currentY)) {
+                    Square candidate = board.getSquareAt(currentX, currentY);
+                    if (!candidate.isOpened()) {
+                        constrainedSquares.add(candidate);
+                    }
+                }
+            }
+        }
+        return constrainedSquares;
     }
 }
