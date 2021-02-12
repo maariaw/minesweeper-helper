@@ -54,7 +54,7 @@ public class MyBotTest {
     @Test
     public void getPossibleMovesReturnsEmptyListIfNoMovesMade() {
         ArrayList<Move> moves = this.bot.getPossibleMoves(board);
-        assertTrue(!moves.isEmpty());
+        assertTrue(moves.isEmpty());
     }
 
     @Test
