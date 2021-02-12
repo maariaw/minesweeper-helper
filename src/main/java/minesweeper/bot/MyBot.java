@@ -161,6 +161,7 @@ public class MyBot implements Bot {
         for (int i = 2; i > 0; i--) {
             if (board.withinBoard(i, i)) {
                 firstMove = new Move(MoveType.OPEN, i, i);
+                return firstMove;
             }
         }
         return firstMove;
