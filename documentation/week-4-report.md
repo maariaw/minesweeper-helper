@@ -12,7 +12,7 @@ I'm very happy with the current test coverage. The MyBot class could have more c
 
 #### Documentation
 
-I added or edited all relevant JavaDocs to the code I've written. I also started on the implementation and testing documents, although they are mostly at template level. But I noticed there's a couple of weeks to work on them, so I guess it's fine.
+I added or edited all relevant JavaDocs to the code I've written. I also started on the implementation and testing documents, although they are mostly at template level. But I noticed there's a couple of weeks to work on them, so I guess it's fine. I did make a pretty neat class/package diagram with focus on the minesweeper.bot package. I think the diagram would have gotten way too confusing, if I had tried to show the relations to classes in the minesweeper.model package, so I left it at package level and only showed the interactions between classes in the minesweeper.bot package.
 
 ### What did I learn?
 
