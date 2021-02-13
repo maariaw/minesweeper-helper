@@ -8,6 +8,8 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
 ## Documentation
 
 - [Project specification](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/Project-Specification.md)
+- [Implementation Document](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/Implementation-Document.md)
+- [Testing Document](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/Testing-Document.md)
 
 - Weekly reports
   - [Week one](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-1-report.md)
@@ -17,7 +19,7 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
   
 ## Tests and checks
 
-For testing coverage, click the Codecov badge under the title of this document. Alternatively, you can run `$ ./gradlew test` and `$ ./gradlew jacocoTestReport` at the root of the project, and then see `build/reports/jacoco/test/html/index.html`.
+For testing coverage, click the Codecov badge under the title of this document. Alternatively, you can run `$ ./gradlew test` and `$ ./gradlew jacocoTestReport` at the root of the project, and then see `build/reports/jacoco/test/html/index.html`. Only coverage of the `minesweeper.bot` package is reported.
 
 For a Checkstyle report, do `$ ./gradlew check` at the root of the project and then see `build/reports/checkstyle/main.html`.
 
