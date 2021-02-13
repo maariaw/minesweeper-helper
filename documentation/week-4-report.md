@@ -10,9 +10,9 @@ I implemented some branch trimming to the CSP, so that squares that have been id
 
 I'm very happy with the current test coverage. The MyBot class could have more comprehensive tests, but the few I have are meaningful (as evidenced by my finding some bugs in the code with them).
 
-#### 
+#### Documentation
 
-
+I added or edited all relevant JavaDocs to the code I've written. I also started on the implementation and testing documents, although they are mostly at template level. But I noticed there's a couple of weeks to work on them, so I guess it's fine.
 
 ### What did I learn?
 
@@ -24,4 +24,4 @@ Something fishy happens sometimes with the bot. I notice it sometimes opening a 
 
 
 
-### Hours worked: 8
+### Hours worked: 9,5
