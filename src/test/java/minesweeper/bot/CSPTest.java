@@ -116,7 +116,7 @@ public class CSPTest {
     public void backTrackingSearchFindsAllZeroAssignment() {
         csp.setConstrainedVariables(new HashSet(variables));
         csp.addConstraint(new MinesweeperConstraint(0, variables));
-        ArrayList<HashMap> solutions = csp.startSearch();
+        ArrayList<HashMap<Square, Integer>> solutions = csp.startSearch();
         HashMap<Square, Integer> assignment = solutions.get(0);
         for (Square square : variables) {
             assertTrue(assignment.get(square) == 0);
@@ -126,7 +126,7 @@ public class CSPTest {
     @Test
     public void backTrackingSearchFindsAnAssignmentWhenNoConstraints() {
         csp.setConstrainedVariables(new HashSet(variables));
-        ArrayList<HashMap> solutions = csp.startSearch();
+        ArrayList<HashMap<Square, Integer>> solutions = csp.startSearch();
         assertFalse(solutions.isEmpty());
     }
 
@@ -134,7 +134,7 @@ public class CSPTest {
     public void backTrackingSearchReturnsNoSolutionIfConstraintsCantBeSatisfied() {
         csp.setConstrainedVariables(new HashSet(variables));
         csp.addConstraint(new MinesweeperConstraint(999, variables));
-        ArrayList<HashMap> solutions = csp.startSearch();
+        ArrayList<HashMap<Square, Integer>> solutions = csp.startSearch();
         assertTrue(solutions.isEmpty());
     }
 

@@ -66,7 +66,9 @@ public class MyBot implements Bot {
         HashMap<Square, Integer> solutionSummary = csp.findSafeSolutions(currentConstrainedSquares);
         for (Square square : solutionSummary.keySet()) {
             if (solutionSummary.get(square).equals(0)) {
-                return new Move(MoveType.OPEN, square.getX(), square.getY());
+                Move newMove = new Move(MoveType.OPEN, square.getX(), square.getY());
+                System.out.println("Making a move: " + newMove.locationString());
+                return newMove;
             }
         }
 
@@ -80,7 +82,9 @@ public class MyBot implements Bot {
                 leastLikelyMine = square;
             }
         }
-        return new Move(MoveType.OPEN, leastLikelyMine.getX(), leastLikelyMine.getY());
+        Move riskyMove = new Move(MoveType.OPEN, leastLikelyMine.getX(), leastLikelyMine.getY());
+        System.out.println("Making a risky move: " + riskyMove.locationString());
+        return riskyMove;
     }
 
     /**
