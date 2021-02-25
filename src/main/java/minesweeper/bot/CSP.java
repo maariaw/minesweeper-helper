@@ -85,19 +85,28 @@ public class CSP {
     private void backtrackingSearch(HashMap<Square, Integer> assignment, ArrayList<HashMap<Square, Integer>> solutions) {
         if (assignment.size() == this.constrainedVariables.size()) {
             solutions.add(new HashMap(assignment));
-            System.out.println("Found solution number " + solutions.size());
+            if (solutions.size() == 100000) {
+                System.out.println("100 000 solutions!!");
+            }
+            if (solutions.size() == 1000000) {
+                System.out.println("Literally a million solutions!!!!");
+            }
             return;
         }
 
-        ArrayList<Square> unassigned = this.constrainedVariables.stream()
-                .filter((variable) -> (!assignment.containsKey(variable)))
-                .collect(Collectors.toCollection(ArrayList::new));
+        Square unAssigned = null;
+        for (Square square : constrainedVariables) {
+            if (!assignment.containsKey(square)) {
+                unAssigned = square;
+                break;
+            }
+        }
 
-        Square first = unassigned.get(0);
-        for (Integer domainValue : this.domains.get(first)) {
+        ArrayList<Integer> unAssignedDomains = this.domains.get(unAssigned);
+        for (Integer domainValue : unAssignedDomains) {
             HashMap<Square, Integer> localAssignment = new HashMap(assignment);
-            localAssignment.put(first, domainValue);
-            if (isConsistent(first, localAssignment)) {
+            localAssignment.put(unAssigned, domainValue);
+            if (unAssignedDomains.size() == 1 || isConsistent(unAssigned, localAssignment)) {
                 backtrackingSearch(localAssignment, solutions);
             }
         }
@@ -128,6 +137,12 @@ public class CSP {
         // Find the squares that are consistently mines or not mines
         HashMap<Square, Integer> solutionSummary = new HashMap<>();
         for (Square square : constrainedVariables) {
+            if (domains.get(square).size() == 1) {
+                int summary = domains.get(square).get(0) * 100;
+                solutionSummary.put(square, summary);
+                System.out.println(square.locationString() + " is summarized as " + summary);
+                continue;
+            }
             int mineSolutions = 0;
             for (HashMap solution : solutions) {
                 if (solution.get(square).equals(1)) {
