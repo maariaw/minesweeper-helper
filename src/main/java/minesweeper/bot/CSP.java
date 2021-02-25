@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import java.lang.Integer;
+import minesweeper.model.Square;
 
 /**
  * A constraint satisfaction problem solver for Minesweeper.
@@ -25,21 +25,18 @@ import java.lang.Integer;
  * search is started with the findSafeSolutions() method, which then returns a
  * summary of the solutions.
  * </p>
- * 
- * @param <V> Variable value, in the case of Minesweeper this is a Square object
- * @param <D> Domain value, in Minesweeper this is an Integer (0 for no mine, 1 for a mine)
  */
-public class CSP<V, D> {
-    private ArrayList<V> variables;
-    private HashMap<V, ArrayList<D>> domains;
-    private HashMap<V, ArrayList<Constraint<V, D>>> constraints;
-    private HashSet<V> constrainedVariables;
+public class CSP {
+    private ArrayList<Square> variables;
+    private HashMap<Square, ArrayList<Integer>> domains;
+    private HashMap<Square, ArrayList<Constraint<Square, Integer>>> constraints;
+    private HashSet<Square> constrainedVariables;
 
-    public CSP(ArrayList<V> variables, HashMap<V, ArrayList<D>> domains) {
+    public CSP(ArrayList<Square> variables, HashMap<Square, ArrayList<Integer>> domains) {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
-        for (V variable : variables) {
+        for (Square variable : variables) {
             this.constraints.put(variable, new ArrayList<>());
             if (!this.domains.containsKey(variable)) {
                 System.out.println("Every variable should have a domain assigned");
@@ -52,8 +49,8 @@ public class CSP<V, D> {
      * @param constraint A constraint to be added
      */
     public void addConstraint(Constraint constraint) {
-        ArrayList<V> vars = constraint.getVariables();
-        for (V variable : vars) {
+        ArrayList<Square> vars = constraint.getVariables();
+        for (Square variable : vars) {
             if (!this.variables.contains(variable)) {
                 System.out.println("Variable in constraint not in CSP");
             } else {
@@ -69,7 +66,7 @@ public class CSP<V, D> {
      * @param assignment The current assignment of domain values to variables
      * @return True if all constraints of this variable are satisfied
      */
-    public boolean isConsistent(V variable, HashMap<V, D> assignment) {
+    public boolean isConsistent(Square variable, HashMap<Square, Integer> assignment) {
         for (Constraint constraint : this.constraints.get(variable)) {
             if (!constraint.isSatisfied(assignment)) {
                 return false;
@@ -84,19 +81,19 @@ public class CSP<V, D> {
      * @param assignment
      * @param solutions 
      */
-    private void backtrackingSearch(HashMap<V, D> assignment, ArrayList<HashMap> solutions) {
+    private void backtrackingSearch(HashMap<Square, Integer> assignment, ArrayList<HashMap> solutions) {
         if (assignment.size() == this.constrainedVariables.size()) {
             solutions.add(new HashMap(assignment));
             return;
         }
 
-        ArrayList<V> unassigned = this.constrainedVariables.stream()
+        ArrayList<Square> unassigned = this.constrainedVariables.stream()
                 .filter((variable) -> (!assignment.containsKey(variable)))
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        V first = unassigned.get(0);
-        for (D domainValue : this.domains.get(first)) {
-            HashMap<V, D> localAssignment = new HashMap(assignment);
+        Square first = unassigned.get(0);
+        for (Integer domainValue : this.domains.get(first)) {
+            HashMap<Square, Integer> localAssignment = new HashMap(assignment);
             localAssignment.put(first, domainValue);
             if (isConsistent(first, localAssignment)) {
                 backtrackingSearch(localAssignment, solutions);
@@ -110,7 +107,7 @@ public class CSP<V, D> {
      */
     public ArrayList<HashMap> startSearch() {
         ArrayList<HashMap> solutions = new ArrayList<>();
-        HashMap<V, D> assignment = new HashMap<>();
+        HashMap<Square, Integer> assignment = new HashMap<>();
         backtrackingSearch(assignment, solutions);
         return solutions;
     }
@@ -121,13 +118,13 @@ public class CSP<V, D> {
      * @return A mapping of Squares to the percentage of solutions that assign
      * them as mines
      */
-    public HashMap<V, D> findSafeSolutions(HashSet<V> constrainedVariables) {
+    public HashMap<Square, Integer> findSafeSolutions(HashSet<Square> constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
         ArrayList<HashMap> solutions = startSearch();
 
         // Find the squares that are consistently mines or not mines
-        HashMap<V, D> solutionSummary = new HashMap<>();
-        for (V square : constrainedVariables) {
+        HashMap<Square, Integer> solutionSummary = new HashMap<>();
+        for (Square square : constrainedVariables) {
             int mineSolutions = 0;
             for (HashMap solution : solutions) {
                 if (solution.get(square).equals(1)) {
@@ -135,28 +132,28 @@ public class CSP<V, D> {
                 }
             }
             if (mineSolutions == 0) {
-                solutionSummary.put(square, (D) Integer.valueOf(0));
-                domains.get(square).remove((D) Integer.valueOf(1));
+                solutionSummary.put(square, 0);
+                domains.get(square).remove(1);
             } else if (mineSolutions == solutions.size()) {
-                solutionSummary.put(square, (D) Integer.valueOf(100));
-                domains.get(square).remove((D) Integer.valueOf(0));
+                solutionSummary.put(square, 100);
+                domains.get(square).remove(0);
             } else {
                 int minePercentage = mineSolutions * 100 / solutions.size();
-                solutionSummary.put(square, (D) Integer.valueOf(minePercentage));
+                solutionSummary.put(square, minePercentage);
             }
         }
         return solutionSummary;
     }
 
-    public HashMap<V, ArrayList<Constraint<V, D>>> getConstraints() {
+    public HashMap<Square, ArrayList<Constraint<Square, Integer>>> getConstraints() {
         return constraints;
     }
 
-    public ArrayList<V> getVariables() {
+    public ArrayList<Square> getVariables() {
         return variables;
     }
 
-    public void setConstrainedVariables(HashSet<V> constrainedVariables) {
+    public void setConstrainedVariables(HashSet<Square> constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
     }
 }
