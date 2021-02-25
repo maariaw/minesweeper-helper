@@ -148,4 +148,8 @@ public class Square {
 
         return this.isMine ? "*" : "" + this.surroundingMines;
     }
+
+    public String locationString() {
+        return "(" + locationX + ", " + locationY + ")";
+    }
 }

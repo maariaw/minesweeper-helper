@@ -42,9 +42,11 @@ public class MyBot implements Bot {
         HashSet<Square> currentConstrainedSquares = new HashSet<>();
 
         if (board.firstMove) {
+            System.out.println("First move detected");
             return getFirstMove(board);
         } else {
             // If it's not the first move, update csp with new constraints and constrained squares.
+            System.out.println("Number squares before update: " + numberSquares.size());
             for (Square square : getConstrainingSquares(board)) {
                 ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
                 currentConstrainedSquares.addAll(constrainedBySquare);
@@ -56,6 +58,7 @@ public class MyBot implements Bot {
                     csp.addConstraint(newConstraint);
                 }
             }
+            System.out.println("Number squares after update: " + numberSquares.size());
         }
 
         // Make an opening move based on the list of possible moves csp creates
@@ -153,6 +156,7 @@ public class MyBot implements Bot {
      */
     private Move getFirstMove(Board board) {
         this.csp = createCsp(board);
+        System.out.println("Created CSP with all closed squares as variables");
         this.numberSquares = new HashSet<>();
         Move firstMove = new Move(MoveType.OPEN, 0, 0);
 
@@ -162,6 +166,7 @@ public class MyBot implements Bot {
                 return firstMove;
             }
         }
+        System.out.println("Returning first move: " + firstMove.locationString());
         return firstMove;
     }
 
@@ -181,6 +186,7 @@ public class MyBot implements Bot {
                 }
             }
         }
+        System.out.println("Got all closed squares: " + variableList.size());
         // Domains for CSP is a hashmap of values and lists containing 0 and 1.
         HashMap<Square, ArrayList<Integer>> domains = new HashMap<>();
         for (Square variable : variableList) {
@@ -205,6 +211,7 @@ public class MyBot implements Bot {
                 constrainingSquares.add(square);
             }
         }
+        System.out.println("Fetched " + constrainingSquares.size() + " constraining squares");
         return constrainingSquares;
     }
 

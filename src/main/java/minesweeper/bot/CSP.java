@@ -29,7 +29,7 @@ import minesweeper.model.Square;
 public class CSP {
     private ArrayList<Square> variables;
     private HashMap<Square, ArrayList<Integer>> domains;
-    private HashMap<Square, ArrayList<Constraint<Square, Integer>>> constraints;
+    private HashMap<Square, ArrayList<MinesweeperConstraint>> constraints;
     private HashSet<Square> constrainedVariables;
 
     public CSP(ArrayList<Square> variables, HashMap<Square, ArrayList<Integer>> domains) {
@@ -48,13 +48,14 @@ public class CSP {
      * Add a constraint by linking it with all the variables it concerns
      * @param constraint A constraint to be added
      */
-    public void addConstraint(Constraint constraint) {
-        ArrayList<Square> vars = constraint.getVariables();
-        for (Square variable : vars) {
-            if (!this.variables.contains(variable)) {
+    public void addConstraint(MinesweeperConstraint constraint) {
+        ArrayList<Square> squares = constraint.getSquares();
+        for (Square square : squares) {
+            if (!this.variables.contains(square)) {
                 System.out.println("Variable in constraint not in CSP");
             } else {
-                this.constraints.get(variable).add(constraint);
+                this.constraints.get(square).add(constraint);
+                System.out.println("Added constraint to CSP: " + constraint.toString());
             }
         }
     }
@@ -67,7 +68,7 @@ public class CSP {
      * @return True if all constraints of this variable are satisfied
      */
     public boolean isConsistent(Square variable, HashMap<Square, Integer> assignment) {
-        for (Constraint constraint : this.constraints.get(variable)) {
+        for (MinesweeperConstraint constraint : this.constraints.get(variable)) {
             if (!constraint.isSatisfied(assignment)) {
                 return false;
             }
@@ -81,9 +82,10 @@ public class CSP {
      * @param assignment
      * @param solutions 
      */
-    private void backtrackingSearch(HashMap<Square, Integer> assignment, ArrayList<HashMap> solutions) {
+    private void backtrackingSearch(HashMap<Square, Integer> assignment, ArrayList<HashMap<Square, Integer>> solutions) {
         if (assignment.size() == this.constrainedVariables.size()) {
             solutions.add(new HashMap(assignment));
+            System.out.println("Found solution number " + solutions.size());
             return;
         }
 
@@ -105,8 +107,8 @@ public class CSP {
      * Initialize the solutions and assignment and start the backtracking search.
      * @return A list of assignments that satisfy current constraints
      */
-    public ArrayList<HashMap> startSearch() {
-        ArrayList<HashMap> solutions = new ArrayList<>();
+    public ArrayList<HashMap<Square, Integer>> startSearch() {
+        ArrayList<HashMap<Square, Integer>> solutions = new ArrayList<>();
         HashMap<Square, Integer> assignment = new HashMap<>();
         backtrackingSearch(assignment, solutions);
         return solutions;
@@ -120,7 +122,8 @@ public class CSP {
      */
     public HashMap<Square, Integer> findSafeSolutions(HashSet<Square> constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
-        ArrayList<HashMap> solutions = startSearch();
+        ArrayList<HashMap<Square, Integer>> solutions = startSearch();
+        System.out.println("Search completed, creating summary...");
 
         // Find the squares that are consistently mines or not mines
         HashMap<Square, Integer> solutionSummary = new HashMap<>();
@@ -133,19 +136,22 @@ public class CSP {
             }
             if (mineSolutions == 0) {
                 solutionSummary.put(square, 0);
-                domains.get(square).remove(1);
+                domains.get(square).remove(Integer.valueOf(1));
+                System.out.println(square.locationString() + " is not a mine");
             } else if (mineSolutions == solutions.size()) {
                 solutionSummary.put(square, 100);
-                domains.get(square).remove(0);
+                domains.get(square).remove(Integer.valueOf(0));
+                System.out.println(square.locationString() + " is a mine");
             } else {
                 int minePercentage = mineSolutions * 100 / solutions.size();
                 solutionSummary.put(square, minePercentage);
+                System.out.println(square.locationString() + " is a mine with a " + minePercentage + "% chance");
             }
         }
         return solutionSummary;
     }
 
-    public HashMap<Square, ArrayList<Constraint<Square, Integer>>> getConstraints() {
+    public HashMap<Square, ArrayList<MinesweeperConstraint>> getConstraints() {
         return constraints;
     }
 

@@ -4,7 +4,6 @@ package minesweeper.bot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Random;
 import minesweeper.model.Square;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,9 +44,9 @@ public class CSPTest {
     public void addConstraintsAssignsConstraintsToConstrainedVariables() {
         MinesweeperConstraint constraint = new MinesweeperConstraint(2, varSubset);
         csp.addConstraint(constraint);
-        HashMap<Square, ArrayList<Constraint>> constraints = csp.getConstraints();
+        HashMap<Square, ArrayList<MinesweeperConstraint>> constraints = csp.getConstraints();
         for (Square variable : varSubset) {
-            ArrayList<Constraint> constraintList = constraints.get(variable);
+            ArrayList<MinesweeperConstraint> constraintList = constraints.get(variable);
             int listSize = constraintList.size();
             assertEquals(listSize, 1);
         }
@@ -61,10 +60,10 @@ public class CSPTest {
         }
         MinesweeperConstraint constraint = new MinesweeperConstraint(2, newVars);
         csp.addConstraint(constraint);
-        HashMap<Square, ArrayList<Constraint>> constraints = csp.getConstraints();
+        HashMap<Square, ArrayList<MinesweeperConstraint>> constraints = csp.getConstraints();
         ArrayList<Square> cspVariables = csp.getVariables();
         for (Square variable : cspVariables) {
-            ArrayList<Constraint> constraintList = constraints.get(variable);
+            ArrayList<MinesweeperConstraint> constraintList = constraints.get(variable);
             int listSize = constraintList.size();
             assertEquals(listSize, 0);
         }
@@ -74,10 +73,10 @@ public class CSPTest {
     public void addConstraintsDoesntAddConstraintsToOtherVariables() {
         MinesweeperConstraint constraint = new MinesweeperConstraint(2, varSubset);
         csp.addConstraint(constraint);
-        HashMap<Square, ArrayList<Constraint>> constraints = csp.getConstraints();
+        HashMap<Square, ArrayList<MinesweeperConstraint>> constraints = csp.getConstraints();
         for (Square variable : variables) {
             if (!varSubset.contains(variable)) {
-                ArrayList<Constraint> constraintList = constraints.get(variable);
+                ArrayList<MinesweeperConstraint> constraintList = constraints.get(variable);
                 int listSize = constraintList.size();
                 assertEquals(listSize, 0);
             }

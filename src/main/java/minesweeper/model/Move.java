@@ -83,4 +83,8 @@ public class Move {
         return "Move: " + type + " Distance: " + numberFormat.format(euclideanDistance) 
                 + " Time: " + numberFormat.format(deltaTime / Math.pow(10, 6));
     }
+
+    public String locationString() {
+        return "Move on (" + x + ", " + y + ")";
+    }
 }
