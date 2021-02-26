@@ -92,8 +92,8 @@ public class CSP {
      * @return True if all constraints of this variable are satisfied
      */
     public boolean isConsistent(Square variable, HashMap<Square, Integer> assignment) {
-        if (domains.get(variable).size() == 0) {
-            System.out.println("Checking consistency for a known square !!");
+        if (!constraints.containsKey(variable)) {
+            return true;
         }
         for (MinesweeperConstraint constraint : this.constraints.get(variable)) {
             if (!constraint.isSatisfied(assignment)) {

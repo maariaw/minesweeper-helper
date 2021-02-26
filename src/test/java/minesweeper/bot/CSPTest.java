@@ -42,8 +42,7 @@ public class CSPTest {
 
     @Test
     public void addConstraintsAssignsConstraintsToConstrainedVariables() {
-        MinesweeperConstraint constraint = new MinesweeperConstraint(2, varSubset);
-        csp.addConstraint(constraint);
+        csp.addConstraint(varSubset, 2);
         HashMap<Square, ArrayList<MinesweeperConstraint>> constraints = csp.getConstraints();
         for (Square variable : varSubset) {
             ArrayList<MinesweeperConstraint> constraintList = constraints.get(variable);
@@ -53,32 +52,12 @@ public class CSPTest {
     }
 
     @Test
-    public void addConstraintsDoesntAddConstraintsIfVariablesNotInCSP() {
-        ArrayList<Square> newVars = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
-            newVars.add(new Square(i, 6-i));
-        }
-        MinesweeperConstraint constraint = new MinesweeperConstraint(2, newVars);
-        csp.addConstraint(constraint);
-        HashMap<Square, ArrayList<MinesweeperConstraint>> constraints = csp.getConstraints();
-        ArrayList<Square> cspVariables = csp.getVariables();
-        for (Square variable : cspVariables) {
-            ArrayList<MinesweeperConstraint> constraintList = constraints.get(variable);
-            int listSize = constraintList.size();
-            assertEquals(listSize, 0);
-        }
-    }
-
-    @Test
     public void addConstraintsDoesntAddConstraintsToOtherVariables() {
-        MinesweeperConstraint constraint = new MinesweeperConstraint(2, varSubset);
-        csp.addConstraint(constraint);
+        csp.addConstraint(varSubset, 2);
         HashMap<Square, ArrayList<MinesweeperConstraint>> constraints = csp.getConstraints();
         for (Square variable : variables) {
             if (!varSubset.contains(variable)) {
-                ArrayList<MinesweeperConstraint> constraintList = constraints.get(variable);
-                int listSize = constraintList.size();
-                assertEquals(listSize, 0);
+                assertFalse(constraints.keySet().contains(variable));
             }
         }
     }
@@ -98,7 +77,7 @@ public class CSPTest {
         for (Square variable : variables) {
             assignment.put(variable, 0);
         }
-        csp.addConstraint(new MinesweeperConstraint(0, variables));
+        csp.addConstraint(variables, 0);
         assertTrue(csp.isConsistent(variables.get(0), assignment));
     }
 
@@ -108,14 +87,14 @@ public class CSPTest {
         for (Square variable : variables) {
             assignment.put(variable, 0);
         }
-        csp.addConstraint(new MinesweeperConstraint(1, variables));
+        csp.addConstraint(variables, 1);
         assertFalse(csp.isConsistent(variables.get(0), assignment));
     }
 
     @Test
     public void backTrackingSearchFindsAllZeroAssignment() {
         csp.setConstrainedVariables(new HashSet(variables));
-        csp.addConstraint(new MinesweeperConstraint(0, variables));
+        csp.addConstraint(variables, 0);
         ArrayList<HashMap<Square, Integer>> solutions = csp.startSearch();
         HashMap<Square, Integer> assignment = solutions.get(0);
         for (Square square : variables) {
@@ -133,14 +112,14 @@ public class CSPTest {
     @Test
     public void backTrackingSearchReturnsNoSolutionIfConstraintsCantBeSatisfied() {
         csp.setConstrainedVariables(new HashSet(variables));
-        csp.addConstraint(new MinesweeperConstraint(999, variables));
+        csp.addConstraint(variables, 999);
         ArrayList<HashMap<Square, Integer>> solutions = csp.startSearch();
         assertTrue(solutions.isEmpty());
     }
 
     @Test
     public void findSafeSolutionsGeneratesAllMinesSummaryWhenAllMinesConstraint() {
-        csp.addConstraint(new MinesweeperConstraint(variables.size(), variables));
+        csp.addConstraint(variables, variables.size());
         HashMap<Square, Integer> summary = csp.findSafeSolutions(new HashSet(variables));
         for (Square square : summary.keySet()) {
             assertEquals((Integer) 100, summary.get(square));
@@ -149,7 +128,7 @@ public class CSPTest {
 
     @Test
     public void findSafeSolutionsGeneratesZeroMinesSummaryWhenZeroMinesConstraint() {
-        csp.addConstraint(new MinesweeperConstraint(0, variables));
+        csp.addConstraint(variables, 0);
         HashMap<Square, Integer> summary = csp.findSafeSolutions(new HashSet(variables));
         for (Square square : summary.keySet()) {
             assertEquals((Integer) 0, summary.get(square));
@@ -158,7 +137,7 @@ public class CSPTest {
 
     @Test
     public void findSafeSolutionsGeneratesViableSummaryWhenAmbiguousConstraint() {
-        csp.addConstraint(new MinesweeperConstraint(varSubset.size(), variables));
+        csp.addConstraint(variables, varSubset.size());
         HashMap<Square, Integer> summary = csp.findSafeSolutions(new HashSet(variables));
         for (Square square : summary.keySet()) {
             assertTrue(summary.get(square) > 0 && summary.get(square) < 100);
