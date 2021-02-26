@@ -57,6 +57,11 @@ public class MyBot implements Bot {
             }
             System.out.println("Number squares after update: " + numberSquares.size());
         }
+        // Adding constraints may have already found known squares due to all mine or
+        // zero mine constraints, so updating constraints
+        while (csp.updateConstraints()) {
+            System.out.println("Updating...");
+        }
         // Checking if constraint simplification has found safe squares
         Square safe = csp.getSafeSquare();
         if (safe != null) {
@@ -64,9 +69,7 @@ public class MyBot implements Bot {
             System.out.println("Making a quick move: " + newMove.locationString());
             return newMove;
         }
-//        // Adding constraints may have already found known squares due to all mine or
-//        // zero mine constraints, so updating constraints
-//        csp.updateConstraints();
+        System.out.println("No quick move");
 
         // Make an opening move based on the list of possible moves csp creates
         // Opening move is created for the first safe square in the solution summary

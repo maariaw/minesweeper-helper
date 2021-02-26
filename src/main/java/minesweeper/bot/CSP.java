@@ -4,7 +4,6 @@ package minesweeper.bot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 import minesweeper.model.Square;
 
 /**
@@ -30,6 +29,7 @@ public class CSP {
     private ArrayList<Square> variables;
     private HashMap<Square, ArrayList<Integer>> domains;
     private HashMap<Square, ArrayList<MinesweeperConstraint>> constraints;
+    private HashSet<MinesweeperConstraint> constraintSet;
     private HashSet<Square> constrainedVariables;
     private ArrayList<Square> safeSquares;
 
@@ -38,12 +38,7 @@ public class CSP {
         this.domains = domains;
         this.constraints = new HashMap<>();
         this.safeSquares = new ArrayList<>();
-//        for (Square variable : variables) {
-//            this.constraints.put(variable, new ArrayList<>());
-//            if (!this.domains.containsKey(variable)) {
-//                System.out.println("Every variable should have a domain assigned");
-//            }
-//        }
+        this.constraintSet = new HashSet<>();
     }
     
     /**
@@ -81,6 +76,7 @@ public class CSP {
                 }
                 this.constraints.get(square).add(newConstraint);
             }
+            constraintSet.add(newConstraint);
             System.out.println("Added constraint to CSP: " + newConstraint.toString());
             return true;
         }
@@ -114,6 +110,9 @@ public class CSP {
     private void backtrackingSearch(HashMap<Square, Integer> assignment, ArrayList<HashMap<Square, Integer>> solutions) {
         if (assignment.size() == this.constrainedVariables.size()) {
             solutions.add(new HashMap(assignment));
+            if (solutions.size() < 10) {
+                System.out.println("Found solution number " + solutions.size());
+            }
             if (solutions.size() == 100000) {
                 System.out.println("100 000 solutions!!");
             }
@@ -131,19 +130,13 @@ public class CSP {
             }
         }
 
-        ArrayList<Integer> unAssignedDomains = this.domains.get(unAssigned);
-        if (unAssignedDomains.size() == 1) {
+        for (Integer domainValue : this.domains.get(unAssigned)) {
             HashMap<Square, Integer> localAssignment = new HashMap(assignment);
-            localAssignment.put(unAssigned, unAssignedDomains.get(0));
-            backtrackingSearch(localAssignment, solutions);
-        } else {
-            for (Integer domainValue : unAssignedDomains) {
-                HashMap<Square, Integer> localAssignment = new HashMap(assignment);
-                localAssignment.put(unAssigned, domainValue);
-                    if (isConsistent(unAssigned, localAssignment)) {
-                        backtrackingSearch(localAssignment, solutions);
-                    }
-            }
+            localAssignment.put(unAssigned, domainValue);
+                if (isConsistent(unAssigned, localAssignment)) {
+//                    System.out.println("Assigning square " + unAssigned.locationString() + " value " + domainValue);
+                    backtrackingSearch(localAssignment, solutions);
+                }
         }
     }
 
@@ -154,6 +147,11 @@ public class CSP {
     public ArrayList<HashMap<Square, Integer>> startSearch() {
         ArrayList<HashMap<Square, Integer>> solutions = new ArrayList<>();
         HashMap<Square, Integer> assignment = new HashMap<>();
+        for (Square square : constrainedVariables) {
+            if (domains.get(square).size() == 1) {
+                assignment.put(square, domains.get(square).get(0));
+            }
+        }
         backtrackingSearch(assignment, solutions);
         return solutions;
     }
@@ -262,55 +260,28 @@ public class CSP {
         }
     }
 
-//    public void updateConstraints() {
-//        HashSet<MinesweeperConstraint> handledConstraints = new HashSet<>();
-//        for (Square square : constraints.keySet()) {
-//            if (domains.get(square).size() == 1) {
-//                for (MinesweeperConstraint constraint : constraints.get(square)) {
-//                    constraint.removeSquare(square, domains.get(square).get(0));
-//                }
-//            }
-//
-//        }
-//
-//
-//        System.out.println("Updating constraints");
-//        // A list to track the constraints that have been handled, to not add duplicates
-//
-//        // A list of the constraints made by simplifying existing constraints
-//        HashSet<MinesweeperConstraint> newConstraints = new HashSet<>();
-//        // Going through all the squares and their attached constraints
-//        for (Square square : constraints.keySet()) {
-//            // If the square has just one domain, it doesn't need constraints
-//            if (domains.get(square).size() == 1) {
-//                continue;
-//            }
-//            for (MinesweeperConstraint constraint : constraints.get(square)) {
-//                if (!handledConstraints.contains(constraint)) {
-//                    ArrayList<Square> updatedVariables = new ArrayList<>();
-//                    int updatedMineCount = constraint.mineIndicator;
-//                    // If a square in the constraint has just one domain, it can be
-//                    // left out of the constraint, and the sum of mines adjusted.
-//                    // Unknown squares will be in the constraint
-//                    for (Square variable : constraint.getSquares()) {
-//                        if (domains.get(variable).size() == 1) {
-//                            updatedMineCount -= domains.get(variable).get(0);
-//                        } else {
-//                            updatedVariables.add(variable);
-//                        }
-//                    }
-//                    MinesweeperConstraint newConstraint =
-//                            new MinesweeperConstraint(updatedMineCount, updatedVariables);
-//                    newConstraints.add(newConstraint);
-//                    handledConstraints.add(constraint);
-//                }
-//            }
-//        }
-//        // Creating new constraint map
-//        this.constraints = new HashMap<>();
-//        for (MinesweeperConstraint newConstraint : newConstraints) {
-//            this.addConstraint(newConstraint.getSquares(), newConstraint.mineIndicator);
-//        }
-//        System.out.println("Updated constraints");
-//    }
+    public boolean updateConstraints() {
+        HashSet<MinesweeperConstraint> constraintsToCheck = new HashSet<>(constraintSet);
+        System.out.println(constraintsToCheck.size() + " constraints to go through");
+        int nonTrivial = 0;
+        for (MinesweeperConstraint constraint : constraintsToCheck) {
+            if (constraint.triviality() == -1) {
+                nonTrivial++;
+                continue;
+            }
+            constraintSet.remove(constraint);
+            ArrayList<Square> squares = new ArrayList<>(constraint.getSquares());
+            System.out.println("Squares to go through: " + squares.size());
+            if (constraint.triviality() == 0) {
+                for (Square square : squares) {
+                    reduceDomain(square, 1);
+                }
+            } else if (constraint.triviality() == 0) {
+                for (Square square : squares) {
+                    reduceDomain(square, 0);
+                }
+            }
+        }
+        return nonTrivial != constraintsToCheck.size();
+    }
 }
