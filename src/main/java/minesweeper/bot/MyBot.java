@@ -39,7 +39,7 @@ public class MyBot implements Bot {
      */
     @Override
     public Move makeMove(Board board) {
-        HashSet<Square> currentConstrainedSquares = new HashSet<>();
+        HashSet<Square> squaresOfInterest = new HashSet<>();
 
         if (board.firstMove) {
             System.out.println("First move detected");
@@ -49,7 +49,7 @@ public class MyBot implements Bot {
             System.out.println("Number squares before update: " + numberSquares.size());
             for (Square square : getConstrainingSquares(board)) {
                 ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
-                currentConstrainedSquares.addAll(constrainedBySquare);
+                squaresOfInterest.addAll(constrainedBySquare);
                 if (!numberSquares.contains(square)) {
                     MinesweeperConstraint newConstraint = 
                             new MinesweeperConstraint(square.surroundingMines(),
@@ -60,10 +60,13 @@ public class MyBot implements Bot {
             }
             System.out.println("Number squares after update: " + numberSquares.size());
         }
+        // Adding constraints may have already found known squares due to all mine or
+        // zero mine constraints, so updating constraints
+        csp.updateConstraints();
 
         // Make an opening move based on the list of possible moves csp creates
         // Opening move is created for the first safe square in the solution summary
-        HashMap<Square, Integer> solutionSummary = csp.findSafeSolutions(currentConstrainedSquares);
+        HashMap<Square, Integer> solutionSummary = csp.findSafeSolutions(squaresOfInterest);
         for (Square square : solutionSummary.keySet()) {
             if (solutionSummary.get(square).equals(0)) {
                 Move newMove = new Move(MoveType.OPEN, square.getX(), square.getY());

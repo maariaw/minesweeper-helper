@@ -36,27 +36,53 @@ public class CSP {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
-        for (Square variable : variables) {
-            this.constraints.put(variable, new ArrayList<>());
-            if (!this.domains.containsKey(variable)) {
-                System.out.println("Every variable should have a domain assigned");
-            }
-        }
+//        for (Square variable : variables) {
+//            this.constraints.put(variable, new ArrayList<>());
+//            if (!this.domains.containsKey(variable)) {
+//                System.out.println("Every variable should have a domain assigned");
+//            }
+//        }
     }
     
     /**
      * Add a constraint by linking it with all the variables it concerns
      * @param constraint A constraint to be added
      */
-    public void addConstraint(MinesweeperConstraint constraint) {
+    public boolean addConstraint(MinesweeperConstraint constraint) {
         ArrayList<Square> squares = constraint.getSquares();
-        for (Square square : squares) {
-            if (!this.variables.contains(square)) {
-                System.out.println("Variable in constraint not in CSP");
-            } else {
-                this.constraints.get(square).add(constraint);
-                System.out.println("Added constraint to CSP: " + constraint.toString());
+
+        if (constraint.mineIndicator == 0) {
+            for (Square square : squares) {
+                reduceDomain(square, 1);
+                System.out.println("Throwing out zero mine constraint");
             }
+            return false;
+        } else if (constraint.mineIndicator == squares.size()) {
+            for (Square square : squares) {
+                reduceDomain(square, 0);
+            }
+            System.out.println("Throwing out all mine constraint");
+            return false;
+        } else {
+            int updatedMineCount = constraint.mineIndicator;
+            ArrayList<Square> updatedSquareList = new ArrayList<>();
+            for (Square square : squares) {
+                if (domains.get(square).size() == 1) {
+                    updatedMineCount -= domains.get(square).get(0);
+                } else {
+                    updatedSquareList.add(square);
+                }
+            }
+            MinesweeperConstraint newConstraint = new MinesweeperConstraint(updatedMineCount, updatedSquareList);
+            for (Square square : updatedSquareList) {
+                if (!constraints.containsKey(square)) {
+                    constraints.put(square, new ArrayList<>());
+                    System.out.println("Adding " + square.locationString() + " to constraint map");
+                }
+                this.constraints.get(square).add(newConstraint);
+            }
+            System.out.println("Added constraint to CSP: " + newConstraint.toString());
+            return true;
         }
     }
 
@@ -68,6 +94,7 @@ public class CSP {
      * @return True if all constraints of this variable are satisfied
      */
     public boolean isConsistent(Square variable, HashMap<Square, Integer> assignment) {
+        System.out.println("Checking consistency for square " + variable.locationString());
         for (MinesweeperConstraint constraint : this.constraints.get(variable)) {
             if (!constraint.isSatisfied(assignment)) {
                 return false;
@@ -102,12 +129,16 @@ public class CSP {
             }
         }
 
+        HashMap<Square, Integer> localAssignment = new HashMap(assignment);
         ArrayList<Integer> unAssignedDomains = this.domains.get(unAssigned);
-        for (Integer domainValue : unAssignedDomains) {
-            HashMap<Square, Integer> localAssignment = new HashMap(assignment);
+        if (unAssignedDomains.size() == 1) {
+            localAssignment.put(unAssigned, unAssignedDomains.get(0));
+        } else {
+            for (Integer domainValue : unAssignedDomains) {
             localAssignment.put(unAssigned, domainValue);
-            if (unAssignedDomains.size() == 1 || isConsistent(unAssigned, localAssignment)) {
-                backtrackingSearch(localAssignment, solutions);
+                if (isConsistent(unAssigned, localAssignment)) {
+                    backtrackingSearch(localAssignment, solutions);
+                }
             }
         }
     }
@@ -193,5 +224,46 @@ public class CSP {
         }
         this.domains.get(square).remove(Integer.valueOf(domainToRemove));
         System.out.println("Square " + square.locationString() + " discarded domain " + domainToRemove);
+    }
+
+    public void updateConstraints() {
+        System.out.println("Updating constraints");
+        // A list to track the constraints that have been handled, to not add duplicates
+        HashSet<MinesweeperConstraint> handledConstraints = new HashSet<>();
+        // A list of the constraints made by simplifying existing constraints
+        HashSet<MinesweeperConstraint> newConstraints = new HashSet<>();
+        // Going through all the squares and their attached constraints
+        for (Square square : constraints.keySet()) {
+            // If the square has just one domain, it doesn't need constraints
+            if (domains.get(square).size() == 1) {
+                continue;
+            }
+            for (MinesweeperConstraint constraint : constraints.get(square)) {
+                if (!handledConstraints.contains(constraint)) {
+                    ArrayList<Square> updatedVariables = new ArrayList<>();
+                    int updatedMineCount = constraint.mineIndicator;
+                    // If a square in the constraint has just one domain, it can be
+                    // left out of the constraint, and the sum of mines adjusted.
+                    // Unknown squares will be in the constraint
+                    for (Square variable : constraint.getSquares()) {
+                        if (domains.get(variable).size() == 1) {
+                            updatedMineCount -= domains.get(variable).get(0);
+                        } else {
+                            updatedVariables.add(variable);
+                        }
+                    }
+                    MinesweeperConstraint newConstraint =
+                            new MinesweeperConstraint(updatedMineCount, updatedVariables);
+                    newConstraints.add(newConstraint);
+                    handledConstraints.add(constraint);
+                }
+            }
+        }
+        // Creating new constraint map
+        this.constraints = new HashMap<>();
+        for (MinesweeperConstraint newConstraint : newConstraints) {
+            this.addConstraint(newConstraint);
+        }
+        System.out.println("Updated constraints");
     }
 }

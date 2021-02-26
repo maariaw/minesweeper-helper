@@ -7,7 +7,7 @@ import minesweeper.model.Square;
 
 public class MinesweeperConstraint {
     private ArrayList<Square> squares;
-    private int mineIndicator;
+    public int mineIndicator;
 
     public MinesweeperConstraint(int mineIndicator, ArrayList<Square> squares) {
         this.squares = squares;
