@@ -151,11 +151,11 @@ public class CSP {
             }
             if (mineSolutions == 0) {
                 solutionSummary.put(square, 0);
-                domains.get(square).remove(Integer.valueOf(1));
+                reduceDomain(square, 1);
                 System.out.println(square.locationString() + " is not a mine");
             } else if (mineSolutions == solutions.size()) {
                 solutionSummary.put(square, 100);
-                domains.get(square).remove(Integer.valueOf(0));
+                reduceDomain(square, 0);
                 System.out.println(square.locationString() + " is a mine");
             } else {
                 int minePercentage = mineSolutions * 100 / solutions.size();
@@ -176,5 +176,22 @@ public class CSP {
 
     public void setConstrainedVariables(HashSet<Square> constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
+    }
+
+    private void reduceDomains(ArrayList<Square> squaresToReduce, int domainToRemove) {
+        for (Square square : squaresToReduce) {
+            reduceDomain(square, domainToRemove);
+        }
+    }
+
+    private void reduceDomain(Square square, int domainToRemove) {
+        if (domains.get(square).size() == 1) {
+            if (domains.get(square).get(0) == domainToRemove) {
+                System.out.println("--------------- CONFLICTING REDUCTIONS -----------------");
+            }
+            return;
+        }
+        this.domains.get(square).remove(Integer.valueOf(domainToRemove));
+        System.out.println("Square " + square.locationString() + " discarded domain " + domainToRemove);
     }
 }
