@@ -131,16 +131,18 @@ public class CSP {
             }
         }
 
-        HashMap<Square, Integer> localAssignment = new HashMap(assignment);
         ArrayList<Integer> unAssignedDomains = this.domains.get(unAssigned);
         if (unAssignedDomains.size() == 1) {
+            HashMap<Square, Integer> localAssignment = new HashMap(assignment);
             localAssignment.put(unAssigned, unAssignedDomains.get(0));
+            backtrackingSearch(localAssignment, solutions);
         } else {
             for (Integer domainValue : unAssignedDomains) {
-            localAssignment.put(unAssigned, domainValue);
-                if (isConsistent(unAssigned, localAssignment)) {
-                    backtrackingSearch(localAssignment, solutions);
-                }
+                HashMap<Square, Integer> localAssignment = new HashMap(assignment);
+                localAssignment.put(unAssigned, domainValue);
+                    if (isConsistent(unAssigned, localAssignment)) {
+                        backtrackingSearch(localAssignment, solutions);
+                    }
             }
         }
     }
@@ -228,6 +230,7 @@ public class CSP {
             safeSquares.add(square);
         }
         this.domains.get(square).remove(Integer.valueOf(domainToRemove));
+        this.updateKnownSquaresConstraints(square);
         System.out.println("Square " + square.locationString() + " discarded domain " + domainToRemove);
     }
 
@@ -249,44 +252,65 @@ public class CSP {
         return safe;
     }
 
-    public void updateConstraints() {
-        System.out.println("Updating constraints");
-        // A list to track the constraints that have been handled, to not add duplicates
-        HashSet<MinesweeperConstraint> handledConstraints = new HashSet<>();
-        // A list of the constraints made by simplifying existing constraints
-        HashSet<MinesweeperConstraint> newConstraints = new HashSet<>();
-        // Going through all the squares and their attached constraints
-        for (Square square : constraints.keySet()) {
-            // If the square has just one domain, it doesn't need constraints
-            if (domains.get(square).size() == 1) {
-                continue;
-            }
+    public void updateKnownSquaresConstraints(Square square) {
+        if (constraints.containsKey(square) && domains.get(square).size() == 1) {
             for (MinesweeperConstraint constraint : constraints.get(square)) {
-                if (!handledConstraints.contains(constraint)) {
-                    ArrayList<Square> updatedVariables = new ArrayList<>();
-                    int updatedMineCount = constraint.mineIndicator;
-                    // If a square in the constraint has just one domain, it can be
-                    // left out of the constraint, and the sum of mines adjusted.
-                    // Unknown squares will be in the constraint
-                    for (Square variable : constraint.getSquares()) {
-                        if (domains.get(variable).size() == 1) {
-                            updatedMineCount -= domains.get(variable).get(0);
-                        } else {
-                            updatedVariables.add(variable);
-                        }
-                    }
-                    MinesweeperConstraint newConstraint =
-                            new MinesweeperConstraint(updatedMineCount, updatedVariables);
-                    newConstraints.add(newConstraint);
-                    handledConstraints.add(constraint);
-                }
+                constraint.removeSquare(square, domains.get(square).get(0));
+                System.out.println("Updated constraints for " + square.locationString());
             }
+            constraints.remove(square);
         }
-        // Creating new constraint map
-        this.constraints = new HashMap<>();
-        for (MinesweeperConstraint newConstraint : newConstraints) {
-            this.addConstraint(newConstraint.getSquares(), newConstraint.mineIndicator);
-        }
-        System.out.println("Updated constraints");
     }
+
+//    public void updateConstraints() {
+//        HashSet<MinesweeperConstraint> handledConstraints = new HashSet<>();
+//        for (Square square : constraints.keySet()) {
+//            if (domains.get(square).size() == 1) {
+//                for (MinesweeperConstraint constraint : constraints.get(square)) {
+//                    constraint.removeSquare(square, domains.get(square).get(0));
+//                }
+//            }
+//
+//        }
+//
+//
+//        System.out.println("Updating constraints");
+//        // A list to track the constraints that have been handled, to not add duplicates
+//
+//        // A list of the constraints made by simplifying existing constraints
+//        HashSet<MinesweeperConstraint> newConstraints = new HashSet<>();
+//        // Going through all the squares and their attached constraints
+//        for (Square square : constraints.keySet()) {
+//            // If the square has just one domain, it doesn't need constraints
+//            if (domains.get(square).size() == 1) {
+//                continue;
+//            }
+//            for (MinesweeperConstraint constraint : constraints.get(square)) {
+//                if (!handledConstraints.contains(constraint)) {
+//                    ArrayList<Square> updatedVariables = new ArrayList<>();
+//                    int updatedMineCount = constraint.mineIndicator;
+//                    // If a square in the constraint has just one domain, it can be
+//                    // left out of the constraint, and the sum of mines adjusted.
+//                    // Unknown squares will be in the constraint
+//                    for (Square variable : constraint.getSquares()) {
+//                        if (domains.get(variable).size() == 1) {
+//                            updatedMineCount -= domains.get(variable).get(0);
+//                        } else {
+//                            updatedVariables.add(variable);
+//                        }
+//                    }
+//                    MinesweeperConstraint newConstraint =
+//                            new MinesweeperConstraint(updatedMineCount, updatedVariables);
+//                    newConstraints.add(newConstraint);
+//                    handledConstraints.add(constraint);
+//                }
+//            }
+//        }
+//        // Creating new constraint map
+//        this.constraints = new HashMap<>();
+//        for (MinesweeperConstraint newConstraint : newConstraints) {
+//            this.addConstraint(newConstraint.getSquares(), newConstraint.mineIndicator);
+//        }
+//        System.out.println("Updated constraints");
+//    }
 }

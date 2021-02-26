@@ -38,4 +38,18 @@ public class MinesweeperConstraint {
         }
         return s;
     }
+
+    public void removeSquare(Square square, Integer assignment) {
+        mineIndicator -= assignment;
+        squares.remove(square);
+    }
+
+    public int triviality() {
+        if (mineIndicator == 0) {
+            return 0;
+        } else if (mineIndicator == squares.size()) {
+            return 1;
+        }
+        return -1;
+    }
 }
