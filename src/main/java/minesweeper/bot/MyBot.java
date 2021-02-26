@@ -51,18 +51,22 @@ public class MyBot implements Bot {
                 ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
                 squaresOfInterest.addAll(constrainedBySquare);
                 if (!numberSquares.contains(square)) {
-                    MinesweeperConstraint newConstraint = 
-                            new MinesweeperConstraint(square.surroundingMines(),
-                                    constrainedBySquare);
                     numberSquares.add(square);
-                    csp.addConstraint(newConstraint);
+                    csp.addConstraint(constrainedBySquare, square.surroundingMines());
                 }
             }
             System.out.println("Number squares after update: " + numberSquares.size());
         }
-        // Adding constraints may have already found known squares due to all mine or
-        // zero mine constraints, so updating constraints
-        csp.updateConstraints();
+        // Checking if constraint simplification has found safe squares
+        Square safe = csp.getSafeSquare();
+        if (safe != null) {
+            Move newMove = new Move(MoveType.OPEN, safe.getX(), safe.getY());
+            System.out.println("Making a quick move: " + newMove.locationString());
+            return newMove;
+        }
+//        // Adding constraints may have already found known squares due to all mine or
+//        // zero mine constraints, so updating constraints
+//        csp.updateConstraints();
 
         // Make an opening move based on the list of possible moves csp creates
         // Opening move is created for the first safe square in the solution summary
@@ -111,10 +115,7 @@ public class MyBot implements Bot {
         for (Square square : getConstrainingSquares(board)) {
             ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
             constrainedSquares.addAll(constrainedBySquare);
-            MinesweeperConstraint newConstraint = 
-                            new MinesweeperConstraint(square.surroundingMines(),
-                                    constrainedBySquare);
-                    solver.addConstraint(newConstraint);
+            solver.addConstraint(constrainedBySquare, square.surroundingMines());
         }
 
         // Excecute the search for solutions

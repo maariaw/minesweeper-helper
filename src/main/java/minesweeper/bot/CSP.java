@@ -31,11 +31,13 @@ public class CSP {
     private HashMap<Square, ArrayList<Integer>> domains;
     private HashMap<Square, ArrayList<MinesweeperConstraint>> constraints;
     private HashSet<Square> constrainedVariables;
+    private ArrayList<Square> safeSquares;
 
     public CSP(ArrayList<Square> variables, HashMap<Square, ArrayList<Integer>> domains) {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
+        this.safeSquares = new ArrayList<>();
 //        for (Square variable : variables) {
 //            this.constraints.put(variable, new ArrayList<>());
 //            if (!this.domains.containsKey(variable)) {
@@ -48,31 +50,29 @@ public class CSP {
      * Add a constraint by linking it with all the variables it concerns
      * @param constraint A constraint to be added
      */
-    public boolean addConstraint(MinesweeperConstraint constraint) {
-        ArrayList<Square> squares = constraint.getSquares();
-
-        if (constraint.mineIndicator == 0) {
-            for (Square square : squares) {
-                reduceDomain(square, 1);
-                System.out.println("Throwing out zero mine constraint");
+    public boolean addConstraint(ArrayList<Square> squares, int mineIndicator) {
+        ArrayList<Square> updatedSquareList = new ArrayList<>();
+        int updatedMineCount = mineIndicator;
+        for (Square square : squares) {
+            if (domains.get(square).size() == 1) {
+                updatedMineCount -= domains.get(square).get(0);
+            } else {
+                updatedSquareList.add(square);
             }
+        }
+        if (updatedMineCount == 0) {
+            for (Square square : updatedSquareList) {
+                reduceDomain(square, 1);
+            }
+            System.out.println("Throwing out zero mine constraint");
             return false;
-        } else if (constraint.mineIndicator == squares.size()) {
-            for (Square square : squares) {
+        } else if (updatedMineCount == updatedSquareList.size()) {
+            for (Square square : updatedSquareList) {
                 reduceDomain(square, 0);
             }
             System.out.println("Throwing out all mine constraint");
             return false;
         } else {
-            int updatedMineCount = constraint.mineIndicator;
-            ArrayList<Square> updatedSquareList = new ArrayList<>();
-            for (Square square : squares) {
-                if (domains.get(square).size() == 1) {
-                    updatedMineCount -= domains.get(square).get(0);
-                } else {
-                    updatedSquareList.add(square);
-                }
-            }
             MinesweeperConstraint newConstraint = new MinesweeperConstraint(updatedMineCount, updatedSquareList);
             for (Square square : updatedSquareList) {
                 if (!constraints.containsKey(square)) {
@@ -94,7 +94,9 @@ public class CSP {
      * @return True if all constraints of this variable are satisfied
      */
     public boolean isConsistent(Square variable, HashMap<Square, Integer> assignment) {
-        System.out.println("Checking consistency for square " + variable.locationString());
+        if (domains.get(variable).size() == 0) {
+            System.out.println("Checking consistency for a known square !!");
+        }
         for (MinesweeperConstraint constraint : this.constraints.get(variable)) {
             if (!constraint.isSatisfied(assignment)) {
                 return false;
@@ -222,8 +224,29 @@ public class CSP {
             }
             return;
         }
+        if (domainToRemove == 1) {
+            safeSquares.add(square);
+        }
         this.domains.get(square).remove(Integer.valueOf(domainToRemove));
         System.out.println("Square " + square.locationString() + " discarded domain " + domainToRemove);
+    }
+
+    public Square getSafeSquare() {
+        int numberOfSafes = safeSquares.size();
+        if (numberOfSafes == 0) {
+            return null;
+        }
+        Square safe = safeSquares.remove(numberOfSafes - 1);
+        numberOfSafes--;
+        while (safe != null && safe.isOpened()) {
+            if (numberOfSafes > 0) {
+                safe = safeSquares.remove(numberOfSafes - 1);
+                numberOfSafes--;
+            } else {
+                safe = null;
+            }
+        }
+        return safe;
     }
 
     public void updateConstraints() {
@@ -262,7 +285,7 @@ public class CSP {
         // Creating new constraint map
         this.constraints = new HashMap<>();
         for (MinesweeperConstraint newConstraint : newConstraints) {
-            this.addConstraint(newConstraint);
+            this.addConstraint(newConstraint.getSquares(), newConstraint.mineIndicator);
         }
         System.out.println("Updated constraints");
     }
