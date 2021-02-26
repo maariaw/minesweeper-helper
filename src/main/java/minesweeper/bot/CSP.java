@@ -32,12 +32,14 @@ public class CSP {
     private HashSet<MinesweeperConstraint> constraintSet;
     private HashSet<Square> constrainedVariables;
     private ArrayList<Square> safeSquares;
+    private ArrayList<Square> mineSquares;
 
     public CSP(ArrayList<Square> variables, HashMap<Square, ArrayList<Integer>> domains) {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
         this.safeSquares = new ArrayList<>();
+        this.mineSquares = new ArrayList<>();
         this.constraintSet = new HashSet<>();
     }
     
@@ -133,10 +135,10 @@ public class CSP {
         for (Integer domainValue : this.domains.get(unAssigned)) {
             HashMap<Square, Integer> localAssignment = new HashMap(assignment);
             localAssignment.put(unAssigned, domainValue);
-                if (isConsistent(unAssigned, localAssignment)) {
+            if (isConsistent(unAssigned, localAssignment)) {
 //                    System.out.println("Assigning square " + unAssigned.locationString() + " value " + domainValue);
-                    backtrackingSearch(localAssignment, solutions);
-                }
+                backtrackingSearch(localAssignment, solutions);
+            }
         }
     }
 
@@ -147,11 +149,13 @@ public class CSP {
     public ArrayList<HashMap<Square, Integer>> startSearch() {
         ArrayList<HashMap<Square, Integer>> solutions = new ArrayList<>();
         HashMap<Square, Integer> assignment = new HashMap<>();
+        System.out.println("Total of " + constrainedVariables.size() + " squares of interest");
         for (Square square : constrainedVariables) {
             if (domains.get(square).size() == 1) {
                 assignment.put(square, domains.get(square).get(0));
             }
         }
+        System.out.println(assignment.size() + " squares assigned by default");
         backtrackingSearch(assignment, solutions);
         return solutions;
     }
@@ -185,11 +189,11 @@ public class CSP {
             if (mineSolutions == 0) {
                 solutionSummary.put(square, 0);
                 reduceDomain(square, 1);
-                System.out.println(square.locationString() + " is not a mine");
+                System.out.println(square.locationString() + " is not a mine, value 0");
             } else if (mineSolutions == solutions.size()) {
                 solutionSummary.put(square, 100);
                 reduceDomain(square, 0);
-                System.out.println(square.locationString() + " is a mine");
+                System.out.println(square.locationString() + " is a mine, value 100");
             } else {
                 int minePercentage = mineSolutions * 100 / solutions.size();
                 solutionSummary.put(square, minePercentage);
@@ -217,7 +221,7 @@ public class CSP {
         }
     }
 
-    private void reduceDomain(Square square, int domainToRemove) {
+    public void reduceDomain(Square square, int domainToRemove) {
         if (domains.get(square).size() == 1) {
             if (domains.get(square).get(0) == domainToRemove) {
                 System.out.println("--------------- CONFLICTING REDUCTIONS -----------------");
@@ -226,6 +230,8 @@ public class CSP {
         }
         if (domainToRemove == 1) {
             safeSquares.add(square);
+        } else {
+            mineSquares.add(square);
         }
         this.domains.get(square).remove(Integer.valueOf(domainToRemove));
         this.updateKnownSquaresConstraints(square);
@@ -250,6 +256,24 @@ public class CSP {
         return safe;
     }
 
+    public Square getFlaggableSquare() {
+        int numberOfMineSquares = mineSquares.size();
+        if (numberOfMineSquares == 0) {
+            return null;
+        }
+        Square mineSquare = mineSquares.remove(numberOfMineSquares - 1);
+        numberOfMineSquares--;
+        while (mineSquare != null && mineSquare.isFlagged()) {
+            if (numberOfMineSquares > 0) {
+                mineSquare = mineSquares.remove(numberOfMineSquares - 1);
+                numberOfMineSquares--;
+            } else {
+                mineSquare = null;
+            }
+        }
+        return mineSquare;
+    }
+
     public void updateKnownSquaresConstraints(Square square) {
         if (constraints.containsKey(square) && domains.get(square).size() == 1) {
             for (MinesweeperConstraint constraint : constraints.get(square)) {
@@ -271,7 +295,6 @@ public class CSP {
             }
             constraintSet.remove(constraint);
             ArrayList<Square> squares = new ArrayList<>(constraint.getSquares());
-            System.out.println("Squares to go through: " + squares.size());
             if (constraint.triviality() == 0) {
                 for (Square square : squares) {
                     reduceDomain(square, 1);
@@ -280,6 +303,12 @@ public class CSP {
                 for (Square square : squares) {
                     reduceDomain(square, 0);
                 }
+            }
+        }
+        if (nonTrivial == constraintsToCheck.size()) {
+            System.out.println("Current non-trivial constraints:");
+            for (MinesweeperConstraint constraint : constraintsToCheck) {
+                System.out.println("   " + constraint.toString());
             }
         }
         return nonTrivial != constraintsToCheck.size();

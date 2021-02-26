@@ -45,7 +45,11 @@ public class MyBot implements Bot {
             System.out.println("First move detected");
             return getFirstMove(board);
         } else {
-            // If it's not the first move, update csp with new constraints and constrained squares.
+            // If it's not the first move, update cp with open squares
+            for (Square openSquare : board.getOpenSquares()) {
+                csp.reduceDomain(openSquare, 1);
+            }
+            //  Also update csp with new constraints and constrained squares.
             System.out.println("Number squares before update: " + numberSquares.size());
             for (Square square : getConstrainingSquares(board)) {
                 ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
@@ -70,7 +74,14 @@ public class MyBot implements Bot {
             return newMove;
         }
         System.out.println("No quick move");
-
+        // To better understand what's happening, here's a step for flagging all known mines
+        Square flaggable = csp.getFlaggableSquare();
+        if (flaggable != null) {
+            Move newMove = new Move(MoveType.FLAG, flaggable.getX(), flaggable.getY());
+            System.out.println("Making a flagging move: " + newMove.locationString());
+            return newMove;
+        }
+        System.out.println("No flagging move");
         // Make an opening move based on the list of possible moves csp creates
         // Opening move is created for the first safe square in the solution summary
         HashMap<Square, Integer> solutionSummary = csp.findSafeSolutions(squaresOfInterest);
