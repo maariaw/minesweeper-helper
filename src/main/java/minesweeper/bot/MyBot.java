@@ -45,7 +45,7 @@ public class MyBot implements Bot {
             System.out.println("First move detected");
             return getFirstMove(board);
         } else {
-            // If it's not the first move, update cp with open squares
+            // If it's not the first move, update csp with open squares
             for (Square openSquare : board.getOpenSquares()) {
                 csp.reduceDomain(openSquare, 1);
             }
@@ -160,7 +160,10 @@ public class MyBot implements Bot {
             constrainedSquares.addAll(constrainedBySquare);
             solver.addConstraint(constrainedBySquare, square.surroundingMines());
         }
-
+        // How about an update loop?
+        while (solver.updateConstraints()) {
+            System.out.println("Updating...");
+        }
         // Excecute the search for solutions
         HashMap<Square, Integer> solutionSummary = solver.findSafeSolutions(constrainedSquares);
         if (solutionSummary.isEmpty()) {
@@ -232,7 +235,7 @@ public class MyBot implements Bot {
         for (int x = 0; x < board.width; x++) {
             for (int y = 0; y < board.height; y++) {
                 Square square = board.getSquareAt(x, y);
-                if (!board.getOpenSquares().contains(square)) {
+                if (!square.isOpened()) {
                     variableList.add(square);
                 }
             }
