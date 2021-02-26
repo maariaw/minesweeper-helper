@@ -85,18 +85,47 @@ public class MyBot implements Bot {
         // Make an opening move based on the list of possible moves csp creates
         // Opening move is created for the first safe square in the solution summary
         HashMap<Square, Integer> solutionSummary = csp.findSafeSolutions(squaresOfInterest);
+        int sumOfMineProbability = 0;
         for (Square square : solutionSummary.keySet()) {
             if (solutionSummary.get(square).equals(0)) {
                 Move newMove = new Move(MoveType.OPEN, square.getX(), square.getY());
                 System.out.println("Making a move: " + newMove.locationString());
                 return newMove;
+            } else if (solutionSummary.get(square) < 100) {
+                sumOfMineProbability += solutionSummary.get(square);
             }
         }
+        System.out.println("No safe move found");
 
+        // Get unopened squares that have no constraints
+        ArrayList<Square> mysterySquares = new ArrayList<>();
+        for (int x = 0; x < board.width; x++) {
+            for (int y = 0; y < board.height; y++) {
+                Square square = board.getSquareAt(x, y);
+                System.out.println("Checking if square " + square.locationString() + " is a mystery square");
+                if (!square.isOpened() && !squaresOfInterest.contains(square)) {
+                    mysterySquares.add(square);
+                    System.out.println("It was");
+                }
+            }
+        }
+        System.out.println("MysterySquares: " + mysterySquares.size());
+        // Calculate probability of a mystery square being mine
+        // Subtract mines that are not yet flagged, but informed by constraints
+        Square leastLikelyMine;
+        Integer lowestLikelihood;
+        if (!mysterySquares.isEmpty()) {
+            int mysteryMines = board.getUnflaggedMines() - sumOfMineProbability / 100;
+            System.out.println("MysteryMines = " + mysteryMines);
+            int mysteryChance = mysteryMines * 100 / mysterySquares.size();
+            System.out.println("MysteryChance = " + mysteryChance);
+            lowestLikelihood = mysteryChance;
+            leastLikelyMine = mysterySquares.get(0);
+        } else {
+            lowestLikelihood = 100;
+            leastLikelyMine = new Square(0, 0);
+        }
         // Opening the square that has the least likelihood of being mine
-        // This does not yet account for the probability of squares further away being mines
-        Integer lowestLikelihood = 100;
-        Square leastLikelyMine = new Square(0, 0);
         for (Square square : solutionSummary.keySet()) {
             if (solutionSummary.get(square) <= lowestLikelihood) {
                 lowestLikelihood = solutionSummary.get(square);
