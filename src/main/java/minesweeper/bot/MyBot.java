@@ -9,6 +9,7 @@ import minesweeper.model.Move;
 import minesweeper.model.MoveType;
 import minesweeper.model.Highlight;
 import minesweeper.model.Square;
+import minesweeper.structures.SquareSet;
 
 
 /**
@@ -30,7 +31,7 @@ public class MyBot implements Bot {
 
     private GameStats gameStats;
     private CSP csp;
-    private HashSet<Square> numberSquares;
+    private SquareSet numberSquares;
 
     /**
      * Make a single decision based on the given Board state
@@ -39,7 +40,7 @@ public class MyBot implements Bot {
      */
     @Override
     public Move makeMove(Board board) {
-        HashSet<Square> squaresOfInterest = new HashSet<>();
+        SquareSet squaresOfInterest = new SquareSet(board.width, board.height);
 
         if (board.firstMove) {
             System.out.println("First move detected");
@@ -51,8 +52,8 @@ public class MyBot implements Bot {
             }
             //  Also update csp with new constraints and constrained squares.
             System.out.println("Number squares before update: " + numberSquares.size());
-            for (Square square : getConstrainingSquares(board)) {
-                ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
+            for (Square square : getConstrainingSquares(board).getSquares()) {
+                SquareSet constrainedBySquare = getConstrainedSquares(board, square);
                 squaresOfInterest.addAll(constrainedBySquare);
                 if (!numberSquares.contains(square)) {
                     numberSquares.add(square);
@@ -98,7 +99,7 @@ public class MyBot implements Bot {
         System.out.println("No safe move found");
 
         // Get unopened squares that have no constraints
-        ArrayList<Square> mysterySquares = new ArrayList<>();
+        SquareSet mysterySquares = new SquareSet(board.width, board.height);
         for (int x = 0; x < board.width; x++) {
             for (int y = 0; y < board.height; y++) {
                 Square square = board.getSquareAt(x, y);
@@ -120,7 +121,7 @@ public class MyBot implements Bot {
             int mysteryChance = mysteryMines * 100 / mysterySquares.size();
             System.out.println("MysteryChance = " + mysteryChance);
             lowestLikelihood = mysteryChance;
-            leastLikelyMine = mysterySquares.get(0);
+            leastLikelyMine = mysterySquares.pop();
         } else {
             lowestLikelihood = 100;
             leastLikelyMine = new Square(0, 0);
@@ -154,9 +155,9 @@ public class MyBot implements Bot {
         
         // Creates a new csp and finds all the constraints
         CSP solver = createCsp(board);
-        HashSet<Square> constrainedSquares = new HashSet<>();
-        for (Square square : getConstrainingSquares(board)) {
-            ArrayList<Square> constrainedBySquare = getConstrainedSquares(board, square);
+        SquareSet constrainedSquares = new SquareSet(board.width, board.height);
+        for (Square square : getConstrainingSquares(board).getSquares()) {
+            SquareSet constrainedBySquare = getConstrainedSquares(board, square);
             constrainedSquares.addAll(constrainedBySquare);
             solver.addConstraint(constrainedBySquare, square.surroundingMines());
         }
@@ -211,7 +212,7 @@ public class MyBot implements Bot {
     private Move getFirstMove(Board board) {
         this.csp = createCsp(board);
         System.out.println("Created CSP with all closed squares as variables");
-        this.numberSquares = new HashSet<>();
+        this.numberSquares = new SquareSet(board.width, board.height);
         Move firstMove = new Move(MoveType.OPEN, 0, 0);
 
         for (int i = 2; i > 0; i--) {
@@ -231,7 +232,7 @@ public class MyBot implements Bot {
      */
     private CSP createCsp(Board board) {
         // The variables are all the unopened squares of the board
-        ArrayList<Square> variableList = new ArrayList<>();
+        SquareSet variableList = new SquareSet(board.width, board.height);
         for (int x = 0; x < board.width; x++) {
             for (int y = 0; y < board.height; y++) {
                 Square square = board.getSquareAt(x, y);
@@ -243,7 +244,7 @@ public class MyBot implements Bot {
         System.out.println("Got all closed squares: " + variableList.size());
         // Domains for CSP is a hashmap of values and lists containing 0 and 1.
         HashMap<Square, ArrayList<Integer>> domains = new HashMap<>();
-        for (Square variable : variableList) {
+        for (Square variable : variableList.getSquares()) {
             ArrayList<Integer> domainValues = new ArrayList<>();
             domainValues.add(0);
             domainValues.add(1);
@@ -258,8 +259,8 @@ public class MyBot implements Bot {
      * @param board Current state of the board
      * @return A set of opened squares that have mines around them
      */
-    private HashSet<Square> getConstrainingSquares(Board board) {
-        HashSet<Square> constrainingSquares = new HashSet<>();
+    private SquareSet getConstrainingSquares(Board board) {
+        SquareSet constrainingSquares = new SquareSet(board.width, board.height);
         for (Square square : board.getOpenSquares()) {
             if (square.surroundingMines() != 0) {
                 constrainingSquares.add(square);
@@ -275,8 +276,8 @@ public class MyBot implements Bot {
      * @param constrainingSquare A square whose surrounding squares are to be found
      * @return A list of unopened squares around the given square
      */
-    private ArrayList<Square> getConstrainedSquares(Board board, Square constrainingSquare) {
-        ArrayList<Square> constrainedSquares = new ArrayList<>();
+    private SquareSet getConstrainedSquares(Board board, Square constrainingSquare) {
+        SquareSet constrainedSquares = new SquareSet(board.width, board.height);
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 int currentX = constrainingSquare.getX() + x;

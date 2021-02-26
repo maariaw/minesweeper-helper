@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import minesweeper.model.Square;
+import minesweeper.structures.SquareSet;
 
 /**
  * A constraint satisfaction problem solver for Minesweeper.
@@ -26,20 +27,20 @@ import minesweeper.model.Square;
  * </p>
  */
 public class CSP {
-    private ArrayList<Square> variables;
+    private SquareSet variables;
     private HashMap<Square, ArrayList<Integer>> domains;
     private HashMap<Square, ArrayList<MinesweeperConstraint>> constraints;
     private HashSet<MinesweeperConstraint> constraintSet;
-    private HashSet<Square> constrainedVariables;
-    private ArrayList<Square> safeSquares;
-    private ArrayList<Square> mineSquares;
+    private SquareSet constrainedVariables;
+    private SquareSet safeSquares;
+    private SquareSet mineSquares;
 
-    public CSP(ArrayList<Square> variables, HashMap<Square, ArrayList<Integer>> domains) {
+    public CSP(SquareSet variables, HashMap<Square, ArrayList<Integer>> domains) {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
-        this.safeSquares = new ArrayList<>();
-        this.mineSquares = new ArrayList<>();
+        this.safeSquares = new SquareSet(variables.width, variables.height);
+        this.mineSquares = new SquareSet(variables.width, variables.height);
         this.constraintSet = new HashSet<>();
     }
     
@@ -47,10 +48,10 @@ public class CSP {
      * Add a constraint by linking it with all the variables it concerns
      * @param constraint A constraint to be added
      */
-    public boolean addConstraint(ArrayList<Square> squares, int mineIndicator) {
-        ArrayList<Square> updatedSquareList = new ArrayList<>();
+    public boolean addConstraint(SquareSet squares, int mineIndicator) {
+        SquareSet updatedSquareList = new SquareSet(variables.width, variables.height);
         int updatedMineCount = mineIndicator;
-        for (Square square : squares) {
+        for (Square square : squares.getSquares()) {
             if (domains.get(square).size() == 1) {
                 updatedMineCount -= domains.get(square).get(0);
             } else {
@@ -58,20 +59,20 @@ public class CSP {
             }
         }
         if (updatedMineCount == 0) {
-            for (Square square : updatedSquareList) {
+            for (Square square : updatedSquareList.getSquares()) {
                 reduceDomain(square, 1);
             }
             System.out.println("Throwing out zero mine constraint");
             return false;
         } else if (updatedMineCount == updatedSquareList.size()) {
-            for (Square square : updatedSquareList) {
+            for (Square square : updatedSquareList.getSquares()) {
                 reduceDomain(square, 0);
             }
             System.out.println("Throwing out all mine constraint");
             return false;
         } else {
             MinesweeperConstraint newConstraint = new MinesweeperConstraint(updatedMineCount, updatedSquareList);
-            for (Square square : updatedSquareList) {
+            for (Square square : updatedSquareList.getSquares()) {
                 if (!constraints.containsKey(square)) {
                     constraints.put(square, new ArrayList<>());
                     System.out.println("Adding " + square.locationString() + " to constraint map");
@@ -125,7 +126,7 @@ public class CSP {
         }
 
         Square unAssigned = null;
-        for (Square square : constrainedVariables) {
+        for (Square square : constrainedVariables.getSquares()) {
             if (!assignment.containsKey(square)) {
                 unAssigned = square;
                 break;
@@ -150,7 +151,7 @@ public class CSP {
         ArrayList<HashMap<Square, Integer>> solutions = new ArrayList<>();
         HashMap<Square, Integer> assignment = new HashMap<>();
         System.out.println("Total of " + constrainedVariables.size() + " squares of interest");
-        for (Square square : constrainedVariables) {
+        for (Square square : constrainedVariables.getSquares()) {
             if (domains.get(square).size() == 1) {
                 assignment.put(square, domains.get(square).get(0));
             }
@@ -166,14 +167,14 @@ public class CSP {
      * @return A mapping of Squares to the percentage of solutions that assign
      * them as mines
      */
-    public HashMap<Square, Integer> findSafeSolutions(HashSet<Square> constrainedVariables) {
+    public HashMap<Square, Integer> findSafeSolutions(SquareSet constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
         ArrayList<HashMap<Square, Integer>> solutions = startSearch();
         System.out.println("Search completed, creating summary...");
 
         // Find the squares that are consistently mines or not mines
         HashMap<Square, Integer> solutionSummary = new HashMap<>();
-        for (Square square : constrainedVariables) {
+        for (Square square : constrainedVariables.getSquares()) {
             if (domains.get(square).size() == 1) {
                 int summary = domains.get(square).get(0) * 100;
                 solutionSummary.put(square, summary);
@@ -207,16 +208,16 @@ public class CSP {
         return constraints;
     }
 
-    public ArrayList<Square> getVariables() {
+    public SquareSet getVariables() {
         return variables;
     }
 
-    public void setConstrainedVariables(HashSet<Square> constrainedVariables) {
+    public void setConstrainedVariables(SquareSet constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
     }
 
-    private void reduceDomains(ArrayList<Square> squaresToReduce, int domainToRemove) {
-        for (Square square : squaresToReduce) {
+    private void reduceDomains(SquareSet squaresToReduce, int domainToRemove) {
+        for (Square square : squaresToReduce.getSquares()) {
             reduceDomain(square, domainToRemove);
         }
     }
@@ -243,11 +244,11 @@ public class CSP {
         if (numberOfSafes == 0) {
             return null;
         }
-        Square safe = safeSquares.remove(numberOfSafes - 1);
+        Square safe = safeSquares.pop();
         numberOfSafes--;
         while (safe != null && safe.isOpened()) {
             if (numberOfSafes > 0) {
-                safe = safeSquares.remove(numberOfSafes - 1);
+                safe = safeSquares.pop();
                 numberOfSafes--;
             } else {
                 safe = null;
@@ -261,11 +262,11 @@ public class CSP {
         if (numberOfMineSquares == 0) {
             return null;
         }
-        Square mineSquare = mineSquares.remove(numberOfMineSquares - 1);
+        Square mineSquare = mineSquares.pop();
         numberOfMineSquares--;
         while (mineSquare != null && mineSquare.isFlagged()) {
             if (numberOfMineSquares > 0) {
-                mineSquare = mineSquares.remove(numberOfMineSquares - 1);
+                mineSquare = mineSquares.pop();
                 numberOfMineSquares--;
             } else {
                 mineSquare = null;
@@ -294,13 +295,14 @@ public class CSP {
                 continue;
             }
             constraintSet.remove(constraint);
-            ArrayList<Square> squares = new ArrayList<>(constraint.getSquares());
+            SquareSet squareSet = new SquareSet(constraint.getSquares().width, constraint.getSquares().height);
+            squareSet.addAll(constraint.getSquares());
             if (constraint.triviality() == 0) {
-                for (Square square : squares) {
+                for (Square square : squareSet.getSquares()) {
                     reduceDomain(square, 1);
                 }
             } else if (constraint.triviality() == 0) {
-                for (Square square : squares) {
+                for (Square square : squareSet.getSquares()) {
                     reduceDomain(square, 0);
                 }
             }

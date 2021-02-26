@@ -1,26 +1,26 @@
 
 package minesweeper.bot;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import minesweeper.model.Square;
+import minesweeper.structures.SquareSet;
 
 public class MinesweeperConstraint {
-    private ArrayList<Square> squares;
+    private SquareSet squares;
     public int mineIndicator;
 
-    public MinesweeperConstraint(int mineIndicator, ArrayList<Square> squares) {
+    public MinesweeperConstraint(int mineIndicator, SquareSet squares) {
         this.squares = squares;
         this.mineIndicator = mineIndicator;
     }
 
-    public ArrayList<Square> getSquares() {
+    public SquareSet getSquares() {
         return squares;
     }
 
     public boolean isSatisfied(HashMap<Square, Integer> assignment) {
         int sum = 0;
-        for (Square square : this.squares) {
+        for (Square square : this.squares.getSquares()) {
             if (!assignment.containsKey(square)) {
                 return true;
             }
@@ -33,7 +33,7 @@ public class MinesweeperConstraint {
     @Override
     public String toString() {
         String s = mineIndicator + " mines in squares";
-        for (Square square : squares) {
+        for (Square square : squares.getSquares()) {
             s += " " + square.locationString();
         }
         return s;
