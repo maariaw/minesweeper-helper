@@ -18,6 +18,13 @@ public class MinesweeperConstraint {
         return squares;
     }
 
+    /**
+     * Checks if the assigned values for the squares of this constraint satisfy
+     * the constraint.
+     * @param assignment
+     * @return True if sum of assigned values to squares equals mineIndicator, or
+     * if not all squares are assigned
+     */
     public boolean isSatisfied(SquareMap<Integer> assignment) {
         int sum = 0;
         for (Square square : this.squares.getSquares()) {
@@ -26,7 +33,6 @@ public class MinesweeperConstraint {
             }
             sum += assignment.get(square);
         }
-        
         return sum == this.mineIndicator;
     }
 
@@ -39,11 +45,23 @@ public class MinesweeperConstraint {
         return s;
     }
 
-    public void removeSquare(Square square, Integer assignment) {
-        mineIndicator -= assignment;
+    /**
+     * Removes a square from the the constraints and adjusts the mineIndicator
+     * according to the square's known value
+     * @param square Square to be removed
+     * @param knownValue 0 if the square is known to be safe, 1 if known to be mine
+     */
+    public void removeSquare(Square square, Integer knownValue) {
+        mineIndicator -= knownValue;
         squares.remove(square);
     }
 
+    /**
+     * Method to assess if the constraint is trivial, as in all of its squares
+     * have to be mines or all have to be safe to satisfy the constraint.
+     * @return -1 if the constraint is not trivial, 0 if all squares have to be safe,
+     * 1 if all squares have to be mines
+     */
     public int triviality() {
         if (mineIndicator == 0) {
             return 0;

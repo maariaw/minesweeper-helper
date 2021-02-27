@@ -34,7 +34,8 @@ public class MyBot implements Bot {
     private SquareSet numberSquares;
 
     /**
-     * Make a single decision based on the given Board state
+     * Make a single decision based on the given Board state.
+     *
      * @param board The current board state
      * @return Move to be made onto the board
      */
@@ -43,7 +44,6 @@ public class MyBot implements Bot {
         SquareSet squaresOfInterest = new SquareSet(board.width, board.height);
 
         if (board.firstMove) {
-            System.out.println("First move detected");
             return getFirstMove(board);
         } else {
             // If it's not the first move, update csp with open squares
@@ -51,7 +51,6 @@ public class MyBot implements Bot {
                 csp.reduceDomain(openSquare, 1);
             }
             //  Also update csp with new constraints and constrained squares.
-            System.out.println("Number squares before update: " + numberSquares.size());
             for (Square square : getConstrainingSquares(board).getSquares()) {
                 SquareSet constrainedBySquare = getConstrainedSquares(board, square);
                 squaresOfInterest.addAll(constrainedBySquare);
@@ -60,105 +59,97 @@ public class MyBot implements Bot {
                     csp.addConstraint(constrainedBySquare, square.surroundingMines());
                 }
             }
-            System.out.println("Number squares after update: " + numberSquares.size());
         }
         // Adding constraints may have already found known squares due to all mine or
         // zero mine constraints, so updating constraints
         while (csp.updateConstraints()) {
-            System.out.println("Updating...");
         }
         // Checking if constraint simplification has found safe squares
         Square safe = csp.getSafeSquare();
         if (safe != null) {
             Move newMove = new Move(MoveType.OPEN, safe.getX(), safe.getY());
-            System.out.println("Making a quick move: " + newMove.locationString());
+//            System.out.println("Making a quick move: " + newMove.locationString());
             return newMove;
         }
-        System.out.println("No quick move");
         // To better understand what's happening, here's a step for flagging all known mines
         Square flaggable = csp.getFlaggableSquare();
         if (flaggable != null) {
             Move newMove = new Move(MoveType.FLAG, flaggable.getX(), flaggable.getY());
-            System.out.println("Making a flagging move: " + newMove.locationString());
+//            System.out.println("Making a flagging move: " + newMove.locationString());
             return newMove;
         }
-        System.out.println("No flagging move");
         // Make an opening move based on the list of possible moves csp creates
         // Opening move is created for the first safe square in the solution summary
         SquareMap<Integer> solutionSummary = csp.findSafeSolutions(squaresOfInterest);
+        // Tracking the squares that are uncertain, to use for guessing if needed
         int sumOfMineProbability = 0;
-
         MyList<Square> solutionSquares = solutionSummary.keySet();
         for (int i = 0; i < solutionSquares.size(); i++) {
             Square square = solutionSquares.get(i);
-//        }
-//        for (Square square : solutionSummary.keySet().getContent()) {
             if (solutionSummary.get(square).equals(0)) {
                 Move newMove = new Move(MoveType.OPEN, square.getX(), square.getY());
-                System.out.println("Making a move: " + newMove.locationString());
+//                System.out.println("Making a move: " + newMove.locationString());
                 return newMove;
             } else if (solutionSummary.get(square) < 100) {
                 sumOfMineProbability += solutionSummary.get(square);
             }
         }
-        System.out.println("No safe move found");
-
+        // If we get here, the move will have to rely on guesswork
         // Get unopened squares that have no constraints
         SquareSet mysterySquares = new SquareSet(board.width, board.height);
         for (int x = 0; x < board.width; x++) {
             for (int y = 0; y < board.height; y++) {
                 Square square = board.getSquareAt(x, y);
-                System.out.println("Checking if square " + square.locationString() + " is a mystery square");
                 if (!square.isOpened() && !squaresOfInterest.contains(square)) {
                     mysterySquares.add(square);
-                    System.out.println("It was");
                 }
             }
         }
-        System.out.println("MysterySquares: " + mysterySquares.size());
         // Calculate probability of a mystery square being mine
         // Subtract mines that are not yet flagged, but informed by constraints
+        // by approximating with the sumOfMineProbability gathered earlier
         Square leastLikelyMine;
         Integer lowestLikelihood;
         if (!mysterySquares.isEmpty()) {
             int mysteryMines = board.getUnflaggedMines() - sumOfMineProbability / 100;
-            System.out.println("MysteryMines = " + mysteryMines);
             int mysteryChance = mysteryMines * 100 / mysterySquares.size();
-            System.out.println("MysteryChance = " + mysteryChance);
             lowestLikelihood = mysteryChance;
             leastLikelyMine = mysterySquares.pop();
         } else {
             lowestLikelihood = 100;
             leastLikelyMine = new Square(0, 0);
         }
-        // Opening the square that has the least likelihood of being mine
+        // Finding the square that has the least likelihood of being mine by
+        // comparing the mystery mine probability with the solution-informed
+        // probabilities, and choosing lowest
         MyList<Square> solvedSquares = solutionSummary.keySet();
         for (int i = 0; i < solvedSquares.size(); i++) {
             Square square = solvedSquares.get(i);
-//        for (Square square : solutionSummary.keySet().getContent()) {
             if (solutionSummary.get(square) <= lowestLikelihood) {
                 lowestLikelihood = solutionSummary.get(square);
                 leastLikelyMine = square;
             }
         }
         Move riskyMove = new Move(MoveType.OPEN, leastLikelyMine.getX(), leastLikelyMine.getY());
-        System.out.println("Making a risky move: " + riskyMove.locationString());
+//        System.out.println("Making a risky move: " + riskyMove.locationString());
         return riskyMove;
     }
 
     /**
      * Return multiple highlight moves based on current board state.
-     * 
+     *
      * Highlight moves for all squares surrounding opened squares are generated.
      * Green highlight indicates a safe square, red highlight a mine square.
      * Squares that could be either are given a black highlight (not visible in
      * current UI).
-     * 
+     *
      * @param board The current board state.
      * @return List of highlight moves for current board.
      */
     @Override
     public ArrayList<Move> getPossibleMoves(Board board) {
+        // This method has to use ArrayList, because it instructs the UI to draw
+        // highlights on the board. I do not want to tamper with that.
         ArrayList<Move> movesToMake = new ArrayList<>();
         
         // Creates a new csp and finds all the constraints
@@ -171,7 +162,6 @@ public class MyBot implements Bot {
         }
         // How about an update loop?
         while (solver.updateConstraints()) {
-            System.out.println("Updating...");
         }
         // Excecute the search for solutions
         SquareMap<Integer> solutionSummary = solver.findSafeSolutions(constrainedSquares);
@@ -179,11 +169,10 @@ public class MyBot implements Bot {
             return movesToMake;
         }
         
-        // Adding moves according to the solution summary
+        // Adding highlight moves according to the solution summary
         MyList<Square> solutionSquares = solutionSummary.keySet();
         for (int i = 0; i < solutionSquares.size(); i++) {
             Square square = solutionSquares.get(i);
-//        for (Square square : solutionSummary.keySet().getContent()) {
             int moveX = square.getX();
             int moveY = square.getY();
             Move moveToMake;
@@ -200,7 +189,8 @@ public class MyBot implements Bot {
     }
 
     /**
-     * Used to pass the bot the gameStats object, useful for tracking previous moves
+     * Used to pass the bot the gameStats object, useful for tracking previous moves.
+     * Not used... yet.
      */
     @Override
     public void setGameStats(GameStats gameStats) {
@@ -217,27 +207,29 @@ public class MyBot implements Bot {
      * squares, MyBot starts at a place where there's room for squares around
      * the safe zone, to make the most educated next move.
      *
+     * A move closer to the corner or to the centre might be even better, but
+     * that is not explored in this project.
+     *
      * @param board The current board state
      * @return An opening move near the upper left corner of the board
      */
     private Move getFirstMove(Board board) {
         this.csp = createCsp(board);
-        System.out.println("Created CSP with all closed squares as variables");
         this.numberSquares = new SquareSet(board.width, board.height);
         Move firstMove = new Move(MoveType.OPEN, 0, 0);
-
+        // Safeguarding for malicious gamers who create extremely tiny boards
         for (int i = 2; i > 0; i--) {
             if (board.withinBoard(i, i)) {
                 firstMove = new Move(MoveType.OPEN, i, i);
                 return firstMove;
             }
         }
-        System.out.println("Returning first move: " + firstMove.locationString());
         return firstMove;
     }
 
     /**
      * Create a CSP object based on the Board object given as a parameter.
+     *
      * @param board Current state of the board
      * @return A CSP object corresponding to the board
      */
@@ -252,8 +244,7 @@ public class MyBot implements Bot {
                 }
             }
         }
-        System.out.println("Got all closed squares: " + variableList.size());
-        // Domains for CSP is a hashmap of values and lists containing 0 and 1.
+        // Domains for CSP is a map of Squares and arrays containing 0 and 1.
         SquareMap<int[]> domains = new SquareMap<>(board.width, board.height);
         for (Square variable : variableList.getSquares()) {
             domains.put(variable, new int[] { 0, 1 });
@@ -263,7 +254,8 @@ public class MyBot implements Bot {
     }
 
     /**
-     * Find all the squares on the board that are opened and have an indicator number
+     * Find all the squares on the board that are opened and have an indicator number.
+     *
      * @param board Current state of the board
      * @return A set of opened squares that have mines around them
      */
@@ -274,12 +266,12 @@ public class MyBot implements Bot {
                 constrainingSquares.add(square);
             }
         }
-        System.out.println("Fetched " + constrainingSquares.size() + " constraining squares");
         return constrainingSquares;
     }
 
     /**
-     * Find all the unopened squares around the given square on the given board
+     * Find all the unopened squares around the given square on the given board.
+     *
      * @param board The current state of the board
      * @param constrainingSquare A square whose surrounding squares are to be found
      * @return A list of unopened squares around the given square

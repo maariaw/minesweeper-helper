@@ -69,6 +69,9 @@ public class SquareSet {
     }
     
     public Square pop() {
+        if (next == 0) {
+            return null;
+        }
         Square last = squares[next - 1];
         next--;
         containGrid[last.getX()][last.getY()] = false;

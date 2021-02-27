@@ -45,62 +45,78 @@ public class CSP {
     }
     
     /**
-     * Add a constraint by linking it with all the variables it concerns
-     * @param constraint A constraint to be added
+     * Add a constraint by linking it with all the variables it concerns.
+     *
+     * This method simplifies the constraint by checking for already known squares
+     * that can be left out of the constraint, adjusting the mine count accordingly.
+     * After that it checks if the constraint indicates that none of the squares are
+     * mines or all of them are, in which case that is recorded for each square.
+     * Otherwise it saves the constraint to CSP.
+     *
+     * @param squares The squares that this constraint concerns
+     * @param mineIndicator The number on the constraining open square
+     * @return True if a constraint was added and not thrown away as trivial
+     * @see #reduceDomain(minesweeper.model.Square, int)
      */
     public boolean addConstraint(SquareSet squares, int mineIndicator) {
         SquareSet updatedSquareList = new SquareSet(variables.width, variables.height);
         int updatedMineCount = mineIndicator;
         for (Square square : squares.getSquares()) {
+            // Is there only one possible solution to this square?
             if (domains.get(square).length == 1) {
+                // If this square can only be a mine (value 1), the remaining
+                // squares will have one less mines among them
                 updatedMineCount -= domains.get(square)[0];
             } else {
+                // If the square is not known, it will be added in the constraint
                 updatedSquareList.add(square);
             }
         }
         if (updatedMineCount == 0) {
+            // None of the squares are mines
             for (Square square : updatedSquareList.getSquares()) {
                 reduceDomain(square, 1);
             }
-            System.out.println("Throwing out zero mine constraint");
             return false;
         } else if (updatedMineCount == updatedSquareList.size()) {
+            // All of the squares are mines
             for (Square square : updatedSquareList.getSquares()) {
                 reduceDomain(square, 0);
             }
-            System.out.println("Throwing out all mine constraint");
             return false;
         } else {
             MinesweeperConstraint newConstraint = new MinesweeperConstraint(updatedMineCount, updatedSquareList);
+            // The new constraint will be linked to every square it concerns
             for (Square square : updatedSquareList.getSquares()) {
                 if (!constraints.containsKey(square)) {
                     constraints.put(square, new MyList<>());
-                    System.out.println("Adding " + square.locationString() + " to constraint map");
                 }
                 this.constraints.get(square).add(newConstraint);
             }
             constraintSet.add(newConstraint);
-            System.out.println("Added constraint to CSP: " + newConstraint.toString());
             return true;
         }
     }
 
     /**
      * Check if the all the constraints of a given variable are satisfied with
-     * the given assignment
+     * the given assignment.
+     *
      * @param variable Check the constraints of this variable
      * @param assignment The current assignment of domain values to variables
      * @return True if all constraints of this variable are satisfied
+     * @see MinesweeperConstraint#isSatisfied(minesweeper.structures.SquareMap)
      */
     public boolean isConsistent(Square variable, SquareMap<Integer> assignment) {
         if (!constraints.containsKey(variable)) {
+            // If the variable in question does not have constraints, the assignment
+            // is satisfied
             return true;
         }
         MyList<MinesweeperConstraint> constraintList = this.constraints.get(variable);
         for (int i = 0; i < constraintList.size(); i++) {
+            // Going through every constraint linked to this square
             MinesweeperConstraint constraint = constraintList.get(i);
-//        }
-//        for (MinesweeperConstraint constraint : this.constraints.get(variable)) {
             if (!constraint.isSatisfied(assignment)) {
                 return false;
             }
@@ -110,23 +126,19 @@ public class CSP {
 
     /**
      * Iterate through possible assignments of domain values to variables to find
-     * assignments that satisfy all constraints
-     * @param assignment
-     * @param solutions 
+     * assignments that satisfy all constraints.
+     *
+     * @param assignment A mapping of integers to squares representing the solution in the works
+     * @param solutions A list of already found solutions
+     * @see #isConsistent(minesweeper.model.Square, minesweeper.structures.SquareMap)
      */
     private void backtrackingSearch(SquareMap<Integer> assignment, MyList<SquareMap<Integer>> solutions) {
         if (assignment.size() == this.constrainedVariables.size()) {
+            // If all the squares that are currently of interest have a number
+            // (0 for no mine or 1 for a mine) assigned, a solution has been found
+            // The recursion starts folding back.
             SquareMap<Integer> solution = assignment.createAClone();
             solutions.add(solution);
-            if (solutions.size() < 10) {
-                System.out.println("Found solution number " + solutions.size());
-            }
-            if (solutions.size() == 100000) {
-                System.out.println("100 000 solutions!!");
-            }
-            if (solutions.size() == 1000000) {
-                System.out.println("Literally a million solutions!!!!");
-            }
             return;
         }
 
@@ -139,10 +151,13 @@ public class CSP {
         }
 
         for (Integer domainValue : this.domains.get(unAssigned)) {
+            // The algorithm handles copies created of the assignments
+            // so that changes made down the line do not affect the
+            // assignment when backtracking
             SquareMap<Integer> localAssignment = assignment.createAClone();
             localAssignment.put(unAssigned, domainValue);
             if (isConsistent(unAssigned, localAssignment)) {
-//                    System.out.println("Assigning square " + unAssigned.locationString() + " value " + domainValue);
+                // Here the magic of recursion happens
                 backtrackingSearch(localAssignment, solutions);
             }
         }
@@ -150,63 +165,68 @@ public class CSP {
 
     /**
      * Initialize the solutions and assignment and start the backtracking search.
+     *
      * @return A list of assignments that satisfy current constraints
+     * @see #backtrackingSearch(minesweeper.structures.SquareMap, minesweeper.structures.MyList)
      */
     public MyList<SquareMap<Integer>> startSearch() {
         MyList<SquareMap<Integer>> solutions = new MyList<>();
         SquareMap<Integer> assignment = new SquareMap<>(variables.width, variables.height);
-        System.out.println("Total of " + constrainedVariables.size() + " squares of interest");
+        // First any known squares are added to the assignment, so they don't
+        // unnecessarily bloat the backtracking
         for (Square square : constrainedVariables.getSquares()) {
             if (domains.get(square).length == 1) {
                 assignment.put(square, domains.get(square)[0]);
             }
         }
-        System.out.println(assignment.size() + " squares assigned by default");
         backtrackingSearch(assignment, solutions);
         return solutions;
     }
 
     /**
      * Perform the backtracking search and summarize the findings.
+     *
      * @param constrainedVariables The set of Squares that have constraints
      * @return A mapping of Squares to the percentage of solutions that assign
      * them as mines
+     * @see #startSearch()
      */
     public SquareMap<Integer> findSafeSolutions(SquareSet constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
         MyList<SquareMap<Integer>> solutions = startSearch();
-        System.out.println("Search completed, creating summary...");
 
         // Find the squares that are consistently mines or not mines
         SquareMap<Integer> solutionSummary = new SquareMap<>(variables.width, variables.height);
         for (Square square : constrainedVariables.getSquares()) {
             if (domains.get(square).length == 1) {
+                // The known squares don't need to iterate through solutions
                 int summary = domains.get(square)[0] * 100;
                 solutionSummary.put(square, summary);
-                System.out.println(square.locationString() + " is summarized as " + summary);
                 continue;
             }
             int mineSolutions = 0;
             for (int i = 0; i < solutions.size(); i++) {
+                // Fetch the assignment this square has in each solution
                 SquareMap<Integer> solution = solutions.get(i);
-//            }
-//            for (HashMap solution : solutions) {
                 if (solution.get(square).equals(1)) {
                     mineSolutions++;
                 }
             }
             if (mineSolutions == 0) {
+                // None of the solutions assigned this square as mine
                 solutionSummary.put(square, 0);
+                // Record this square as known safe
                 reduceDomain(square, 1);
-                System.out.println(square.locationString() + " is not a mine, value 0");
             } else if (mineSolutions == solutions.size()) {
+                // This square is mine in all solutions
                 solutionSummary.put(square, 100);
+                // Record this square as known mine
                 reduceDomain(square, 0);
-                System.out.println(square.locationString() + " is a mine, value 100");
             } else {
+                // This is not an exact percentage, just an approximation to guide
+                // the bot in case no safe squares are found
                 int minePercentage = mineSolutions * 100 / solutions.size();
                 solutionSummary.put(square, minePercentage);
-                System.out.println(square.locationString() + " is a mine with a " + minePercentage + "% chance");
             }
         }
         return solutionSummary;
@@ -224,24 +244,37 @@ public class CSP {
         this.constrainedVariables = constrainedVariables;
     }
 
+    /**
+     * Removes an impossible value from the domain of a square.
+     *
+     * @param square Square that is now known
+     * @param domainToRemove The value that the square can not have
+     * @see #updateKnownSquaresConstraints(minesweeper.model.Square)
+     */
     public void reduceDomain(Square square, int domainToRemove) {
         if (domains.get(square).length == 1) {
-            if (domains.get(square)[0] == domainToRemove) {
-                System.out.println("--------------- CONFLICTING REDUCTIONS -----------------");
-            }
+            // Square was already recorded as known
             return;
         }
         if (domainToRemove == 1) {
+            // This square can not be a mine
             safeSquares.add(square);
             this.domains.put(square, new int[] { 0 });
         } else {
+            // This square is a sure mine
             mineSquares.add(square);
             this.domains.put(square, new int[] { 1 });
         }
+        // Update constraints to reflect new knowledge
         this.updateKnownSquaresConstraints(square);
-        System.out.println("Square " + square.locationString() + " discarded domain " + domainToRemove);
     }
 
+    /**
+     * This method returns an unopened square that is known to be safe, or null
+     * if none exist.
+     *
+     * @return A safe Square or null
+     */
     public Square getSafeSquare() {
         int numberOfSafes = safeSquares.size();
         if (numberOfSafes == 0) {
@@ -260,6 +293,12 @@ public class CSP {
         return safe;
     }
 
+    /**
+     * Method for getting a Square that is known to be a mine and that has not
+     * yet been flagged, or null if none exist.
+     *
+     * @return A Square that is known to be a mine, or null
+     */
     public Square getFlaggableSquare() {
         int numberOfMineSquares = mineSquares.size();
         if (numberOfMineSquares == 0) {
@@ -278,36 +317,49 @@ public class CSP {
         return mineSquare;
     }
 
+    /**
+     * A method for removing a known square from the constraint map and from all
+     * constraints that it is included in, updating the constraint's mine count
+     * accordingly.
+     *
+     * @param square A square for which constraints should be updated
+     * @see MinesweeperConstraint#removeSquare(minesweeper.model.Square, java.lang.Integer)
+     */
     public void updateKnownSquaresConstraints(Square square) {
+        // Checking that the constraint map contains the square, and that it is
+        // indeed known
         if (constraints.containsKey(square) && domains.get(square).length == 1) {
             MyList<MinesweeperConstraint> constraintList = this.constraints.get(square);
             for (int i = 0; i < constraintList.size(); i++) {
                 MinesweeperConstraint constraint = constraintList.get(i);
-//            }
-//            for (MinesweeperConstraint constraint : constraints.get(square)) {
                 constraint.removeSquare(square, domains.get(square)[0]);
-                System.out.println("Updated constraints for " + square.locationString());
             }
             constraints.remove(square);
         }
     }
 
+    /**
+     * This method goes through all the constraints in the csp and checks if
+     * constraints have become trivial for example due to known squares having
+     * been removed. It handles trivial constraints by recording all their squares
+     * as mines or non-mines, and discards the constraint. Designed to be looped
+     * until all constraints are non-trivial.
+     *
+     * @return True if there were trivial constraints
+     * @see MinesweeperConstraint#triviality() 
+     * @see #reduceDomain(minesweeper.model.Square, int)
+     */
     public boolean updateConstraints() {
         MyList<MinesweeperConstraint> constraintList = constraintSet.getList();
-        System.out.println(constraintList.size() + " constraints to go through");
         int nonTrivial = 0;
         for (int i = 0; i < constraintList.size(); i++) {
             MinesweeperConstraint constraint = constraintList.get(i);
-//        }
-//        for (MinesweeperConstraint constraint : constraintsToCheck) {
             if (constraint.triviality() == -1) {
                 nonTrivial++;
                 continue;
             }
-            if (constraintSet.remove(constraint)) {
-                System.out.println("Constraint removed");
-            }
-
+            // The constraint is trivial, so either all squares are mines or none
+            constraintSet.remove(constraint);
             SquareSet squareSet = new SquareSet(constraint.getSquares().width, constraint.getSquares().height);
             squareSet.addAll(constraint.getSquares());
             if (constraint.triviality() == 0) {
@@ -318,14 +370,6 @@ public class CSP {
                 for (Square square : squareSet.getSquares()) {
                     reduceDomain(square, 0);
                 }
-            }
-        }
-        if (nonTrivial == constraintList.size()) {
-            System.out.println("Current non-trivial constraints:");
-            for (int i = 0; i < constraintList.size(); i++) {
-                MinesweeperConstraint constraint = constraintList.get(i);
-//            for (MinesweeperConstraint constraint : constraintsToCheck) {
-                System.out.println("   " + constraint.toString());
             }
         }
         return nonTrivial != constraintList.size();
