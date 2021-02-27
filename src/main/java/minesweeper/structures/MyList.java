@@ -18,10 +18,6 @@ public class MyList<Type> {
         next++;
     }
 
-    public Type[] getElements() {
-        return elements;
-    }
-
     public int size() {
         return next;
     }

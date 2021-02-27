@@ -1,8 +1,8 @@
 
 package minesweeper.bot;
 
-import java.util.HashMap;
 import minesweeper.model.Square;
+import minesweeper.structures.SquareMap;
 import minesweeper.structures.SquareSet;
 
 public class MinesweeperConstraint {
@@ -18,7 +18,7 @@ public class MinesweeperConstraint {
         return squares;
     }
 
-    public boolean isSatisfied(HashMap<Square, Integer> assignment) {
+    public boolean isSatisfied(SquareMap<Integer> assignment) {
         int sum = 0;
         for (Square square : this.squares.getSquares()) {
             if (!assignment.containsKey(square)) {

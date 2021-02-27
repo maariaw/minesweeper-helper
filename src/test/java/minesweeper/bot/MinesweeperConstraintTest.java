@@ -4,6 +4,7 @@ package minesweeper.bot;
 import java.util.HashMap;
 import java.util.Random;
 import minesweeper.model.Square;
+import minesweeper.structures.SquareMap;
 import minesweeper.structures.SquareSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,14 +14,14 @@ public class MinesweeperConstraintTest {
     private Random rng;
     private int mines;
     private SquareSet variables;
-    private HashMap<Square, Integer> correctAssignment;
+    private SquareMap<Integer> correctAssignment;
     private MinesweeperConstraint constraint;
     
     @Before
     public void setUp() {
         this.rng = new Random(6332);
         this.mines = 0;
-        this.correctAssignment = new HashMap<>();
+        this.correctAssignment = new SquareMap<>(6, 6);
         this.variables = new SquareSet(6, 6);
         for (int i = 0; i < 6; i++) {
             Square square = new Square(i, i);
@@ -44,7 +45,7 @@ public class MinesweeperConstraintTest {
     @Test
     public void isNotSatisfiedWhenIncorrectAssignment() {
         Square deviant = this.variables.getSquares()[0];
-        HashMap<Square, Integer> incorrectAssignment = new HashMap<>(correctAssignment);
+        SquareMap<Integer> incorrectAssignment = correctAssignment.createAClone();
         if (correctAssignment.get(deviant) == 0) {
             incorrectAssignment.put(deviant, 1);
         } else {
@@ -57,7 +58,7 @@ public class MinesweeperConstraintTest {
     @Test
     public void isSatisfiedWhenAssignmentIncomplete() {
         Square missing = this.variables.getSquares()[0];
-        HashMap<Square, Integer> incompleteAssignment = new HashMap<>(correctAssignment);
+        SquareMap<Integer> incompleteAssignment = correctAssignment.createAClone();
         incompleteAssignment.remove(missing);
         assertTrue(constraint.isSatisfied(incompleteAssignment));
     }

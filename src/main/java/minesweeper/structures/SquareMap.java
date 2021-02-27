@@ -43,23 +43,33 @@ public class SquareMap<Type> {
         MyCouple[][] newMap = new MyCouple[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
+                if (map[x][y] == null) {
+                    continue;
+                }
                 newMap[x][y] = new MyCouple(map[x][y].getKey(), map[x][y].getValue());
             }
         }
         return new SquareMap(width, height, newMap, size);
     }
     
-    public Square[] keySet() {
-        Square[] keySet = new Square[size];
-        int index = 0;
+    public MyList<Square> keySet() {
+        MyList<Square> keySet = new MyList<>();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (map[x][y] != null) {
-                    keySet[index] = (Square) map[x][y].getKey();
-                    index++;
+                    keySet.add((Square) map[x][y].getKey());
                 }
             }
         }
         return keySet;
+    }
+
+    public boolean remove(Square square) {
+        if (this.map[square.getX()][square.getY()] == null) {
+            return false;
+        }
+        this.map[square.getX()][square.getY()] = null;
+        size--;
+        return true;
     }
 }

@@ -1,13 +1,14 @@
 package minesweeper.bot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import minesweeper.model.Board;
 import minesweeper.model.GameStats;
 import minesweeper.model.Move;
 import minesweeper.model.MoveType;
 import minesweeper.model.Highlight;
 import minesweeper.model.Square;
+import minesweeper.structures.MyList;
+import minesweeper.structures.SquareMap;
 import minesweeper.structures.SquareSet;
 
 
@@ -84,9 +85,14 @@ public class MyBot implements Bot {
         System.out.println("No flagging move");
         // Make an opening move based on the list of possible moves csp creates
         // Opening move is created for the first safe square in the solution summary
-        HashMap<Square, Integer> solutionSummary = csp.findSafeSolutions(squaresOfInterest);
+        SquareMap<Integer> solutionSummary = csp.findSafeSolutions(squaresOfInterest);
         int sumOfMineProbability = 0;
-        for (Square square : solutionSummary.keySet()) {
+
+        MyList<Square> solutionSquares = solutionSummary.keySet();
+        for (int i = 0; i < solutionSquares.size(); i++) {
+            Square square = solutionSquares.get(i);
+//        }
+//        for (Square square : solutionSummary.keySet().getContent()) {
             if (solutionSummary.get(square).equals(0)) {
                 Move newMove = new Move(MoveType.OPEN, square.getX(), square.getY());
                 System.out.println("Making a move: " + newMove.locationString());
@@ -126,7 +132,10 @@ public class MyBot implements Bot {
             leastLikelyMine = new Square(0, 0);
         }
         // Opening the square that has the least likelihood of being mine
-        for (Square square : solutionSummary.keySet()) {
+        MyList<Square> solvedSquares = solutionSummary.keySet();
+        for (int i = 0; i < solvedSquares.size(); i++) {
+            Square square = solvedSquares.get(i);
+//        for (Square square : solutionSummary.keySet().getContent()) {
             if (solutionSummary.get(square) <= lowestLikelihood) {
                 lowestLikelihood = solutionSummary.get(square);
                 leastLikelyMine = square;
@@ -165,13 +174,16 @@ public class MyBot implements Bot {
             System.out.println("Updating...");
         }
         // Excecute the search for solutions
-        HashMap<Square, Integer> solutionSummary = solver.findSafeSolutions(constrainedSquares);
-        if (solutionSummary.isEmpty()) {
+        SquareMap<Integer> solutionSummary = solver.findSafeSolutions(constrainedSquares);
+        if (solutionSummary.size() == 0) {
             return movesToMake;
         }
         
         // Adding moves according to the solution summary
-        for (Square square : solutionSummary.keySet()) {
+        MyList<Square> solutionSquares = solutionSummary.keySet();
+        for (int i = 0; i < solutionSquares.size(); i++) {
+            Square square = solutionSquares.get(i);
+//        for (Square square : solutionSummary.keySet().getContent()) {
             int moveX = square.getX();
             int moveY = square.getY();
             Move moveToMake;
@@ -242,7 +254,7 @@ public class MyBot implements Bot {
         }
         System.out.println("Got all closed squares: " + variableList.size());
         // Domains for CSP is a hashmap of values and lists containing 0 and 1.
-        HashMap<Square, int[]> domains = new HashMap<>();
+        SquareMap<int[]> domains = new SquareMap<>(board.width, board.height);
         for (Square variable : variableList.getSquares()) {
             domains.put(variable, new int[] { 0, 1 });
         }
