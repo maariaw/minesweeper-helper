@@ -216,12 +216,6 @@ public class CSP {
         this.constrainedVariables = constrainedVariables;
     }
 
-    private void reduceDomains(SquareSet squaresToReduce, int domainToRemove) {
-        for (Square square : squaresToReduce.getSquares()) {
-            reduceDomain(square, domainToRemove);
-        }
-    }
-
     public void reduceDomain(Square square, int domainToRemove) {
         if (domains.get(square).length == 1) {
             if (domains.get(square)[0] == domainToRemove) {

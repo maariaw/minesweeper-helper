@@ -52,4 +52,33 @@ public class MinesweeperConstraint {
         }
         return -1;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 47 * hash + this.squares.hashCode();
+        hash = 47 * hash + this.mineIndicator;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final MinesweeperConstraint other = (MinesweeperConstraint) obj;
+        if (this.mineIndicator != other.mineIndicator) {
+            return false;
+        }
+        if (!this.squares.equals(other.squares)) {
+            return false;
+        }
+        return true;
+    }
 }

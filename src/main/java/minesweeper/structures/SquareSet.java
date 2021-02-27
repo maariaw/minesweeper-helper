@@ -1,6 +1,7 @@
 
 package minesweeper.structures;
 
+import java.util.Arrays;
 import minesweeper.model.Square;
 
 public class SquareSet {
@@ -76,5 +77,30 @@ public class SquareSet {
 
     public boolean isEmpty() {
         return next == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 41 * hash + Arrays.deepHashCode(this.containGrid);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SquareSet other = (SquareSet) obj;
+        if (!Arrays.deepEquals(this.containGrid, other.containGrid)) {
+            return false;
+        }
+        return true;
     }
 }
