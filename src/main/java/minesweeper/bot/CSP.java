@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import minesweeper.model.Square;
+import minesweeper.structures.ConstraintSet;
+import minesweeper.structures.MyList;
 import minesweeper.structures.SquareSet;
 
 /**
@@ -30,7 +32,7 @@ public class CSP {
     private SquareSet variables;
     private HashMap<Square, int[]> domains;
     private HashMap<Square, ArrayList<MinesweeperConstraint>> constraints;
-    private HashSet<MinesweeperConstraint> constraintSet;
+    private ConstraintSet constraintSet;
     private SquareSet constrainedVariables;
     private SquareSet safeSquares;
     private SquareSet mineSquares;
@@ -41,7 +43,7 @@ public class CSP {
         this.constraints = new HashMap<>();
         this.safeSquares = new SquareSet(variables.width, variables.height);
         this.mineSquares = new SquareSet(variables.width, variables.height);
-        this.constraintSet = new HashSet<>();
+        this.constraintSet = new ConstraintSet();
     }
     
     /**
@@ -281,15 +283,21 @@ public class CSP {
     }
 
     public boolean updateConstraints() {
-        HashSet<MinesweeperConstraint> constraintsToCheck = new HashSet<>(constraintSet);
-        System.out.println(constraintsToCheck.size() + " constraints to go through");
+        MyList<MinesweeperConstraint> constraintList = constraintSet.getList();
+        System.out.println(constraintList.size() + " constraints to go through");
         int nonTrivial = 0;
-        for (MinesweeperConstraint constraint : constraintsToCheck) {
+        for (int i = 0; i < constraintList.size(); i++) {
+            MinesweeperConstraint constraint = constraintList.get(i);
+//        }
+//        for (MinesweeperConstraint constraint : constraintsToCheck) {
             if (constraint.triviality() == -1) {
                 nonTrivial++;
                 continue;
             }
-            constraintSet.remove(constraint);
+            if (constraintSet.remove(constraint)) {
+                System.out.println("Constraint removed");
+            }
+
             SquareSet squareSet = new SquareSet(constraint.getSquares().width, constraint.getSquares().height);
             squareSet.addAll(constraint.getSquares());
             if (constraint.triviality() == 0) {
@@ -302,12 +310,14 @@ public class CSP {
                 }
             }
         }
-        if (nonTrivial == constraintsToCheck.size()) {
+        if (nonTrivial == constraintList.size()) {
             System.out.println("Current non-trivial constraints:");
-            for (MinesweeperConstraint constraint : constraintsToCheck) {
+            for (int i = 0; i < constraintList.size(); i++) {
+                MinesweeperConstraint constraint = constraintList.get(i);
+//            for (MinesweeperConstraint constraint : constraintsToCheck) {
                 System.out.println("   " + constraint.toString());
             }
         }
-        return nonTrivial != constraintsToCheck.size();
+        return nonTrivial != constraintList.size();
     }
 }

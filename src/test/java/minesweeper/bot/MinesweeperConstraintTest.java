@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import minesweeper.model.Square;
+import minesweeper.structures.SquareSet;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -12,7 +13,7 @@ import static org.junit.Assert.*;
 public class MinesweeperConstraintTest {
     private Random rng;
     private int mines;
-    private ArrayList<Square> variables;
+    private SquareSet variables;
     private HashMap<Square, Integer> correctAssignment;
     private MinesweeperConstraint constraint;
     
@@ -21,7 +22,7 @@ public class MinesweeperConstraintTest {
         this.rng = new Random(6332);
         this.mines = 0;
         this.correctAssignment = new HashMap<>();
-        this.variables = new ArrayList<>();
+        this.variables = new SquareSet(6, 6);
         for (int i = 0; i < 6; i++) {
             Square square = new Square(i, i);
             if (rng.nextBoolean()) {
@@ -43,7 +44,7 @@ public class MinesweeperConstraintTest {
     
     @Test
     public void isNotSatisfiedWhenIncorrectAssignment() {
-        Square deviant = this.variables.get(0);
+        Square deviant = this.variables.getSquares()[0];
         HashMap<Square, Integer> incorrectAssignment = new HashMap<>(correctAssignment);
         if (correctAssignment.get(deviant) == 0) {
             incorrectAssignment.put(deviant, 1);
@@ -56,9 +57,23 @@ public class MinesweeperConstraintTest {
     
     @Test
     public void isSatisfiedWhenAssignmentIncomplete() {
-        Square missing = this.variables.get(0);
+        Square missing = this.variables.getSquares()[0];
         HashMap<Square, Integer> incompleteAssignment = new HashMap<>(correctAssignment);
         incompleteAssignment.remove(missing);
         assertTrue(constraint.isSatisfied(incompleteAssignment));
+    }
+
+    @Test
+    public void constraintsAreEqualIfSameMinesAndSquares() {
+        MinesweeperConstraint other = new MinesweeperConstraint(mines, variables);
+        assertTrue(this.constraint.equals(other));
+    }
+
+    @Test
+    public void constraintsAreEqualIfSameMinesAndSimilarlyMadeSquares() {
+        SquareSet otherSquares = new SquareSet(variables.width, variables.height);
+        otherSquares.addAll(variables);
+        MinesweeperConstraint other = new MinesweeperConstraint(mines, otherSquares);
+        assertTrue(this.constraint.equals(other));
     }
 }

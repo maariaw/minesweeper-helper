@@ -2,6 +2,7 @@
 package minesweeper.bot;
 
 import java.util.HashMap;
+import java.util.Objects;
 import minesweeper.model.Square;
 import minesweeper.structures.SquareSet;
 
@@ -51,14 +52,6 @@ public class MinesweeperConstraint {
             return 1;
         }
         return -1;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 47 * hash + this.squares.hashCode();
-        hash = 47 * hash + this.mineIndicator;
-        return hash;
     }
 
     @Override

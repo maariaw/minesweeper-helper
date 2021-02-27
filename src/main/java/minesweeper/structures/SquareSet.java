@@ -5,7 +5,7 @@ import java.util.Arrays;
 import minesweeper.model.Square;
 
 public class SquareSet {
-    private boolean[][] containGrid;
+    public boolean[][] containGrid;
     private Square[] squares;
     private int next;
     public int width;
@@ -80,13 +80,6 @@ public class SquareSet {
     }
 
     @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 41 * hash + Arrays.deepHashCode(this.containGrid);
-        return hash;
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -98,8 +91,18 @@ public class SquareSet {
             return false;
         }
         final SquareSet other = (SquareSet) obj;
-        if (!Arrays.deepEquals(this.containGrid, other.containGrid)) {
+        if (this.width != other.width) {
             return false;
+        }
+        if (this.height != other.height) {
+            return false;
+        }
+        for (int x = 0; x < this.width; x++) {
+            for (int y = 0; y < this.height; y++) {
+                if (this.containGrid[x][y] != other.containGrid[x][y]) {
+                    return false;
+                }
+            }
         }
         return true;
     }
