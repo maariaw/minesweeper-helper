@@ -1,7 +1,6 @@
 
 package minesweeper.bot;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import minesweeper.model.Square;

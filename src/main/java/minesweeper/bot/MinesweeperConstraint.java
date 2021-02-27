@@ -2,7 +2,6 @@
 package minesweeper.bot;
 
 import java.util.HashMap;
-import java.util.Objects;
 import minesweeper.model.Square;
 import minesweeper.structures.SquareSet;
 
