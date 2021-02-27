@@ -1,6 +1,5 @@
 package minesweeper.bot;
 
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import minesweeper.model.Board;
@@ -243,12 +242,9 @@ public class MyBot implements Bot {
         }
         System.out.println("Got all closed squares: " + variableList.size());
         // Domains for CSP is a hashmap of values and lists containing 0 and 1.
-        HashMap<Square, ArrayList<Integer>> domains = new HashMap<>();
+        HashMap<Square, int[]> domains = new HashMap<>();
         for (Square variable : variableList.getSquares()) {
-            ArrayList<Integer> domainValues = new ArrayList<>();
-            domainValues.add(0);
-            domainValues.add(1);
-            domains.put(variable, domainValues);
+            domains.put(variable, new int[] { 0, 1 });
         }
 
         return new CSP(variableList, domains);

@@ -28,14 +28,14 @@ import minesweeper.structures.SquareSet;
  */
 public class CSP {
     private SquareSet variables;
-    private HashMap<Square, ArrayList<Integer>> domains;
+    private HashMap<Square, int[]> domains;
     private HashMap<Square, ArrayList<MinesweeperConstraint>> constraints;
     private HashSet<MinesweeperConstraint> constraintSet;
     private SquareSet constrainedVariables;
     private SquareSet safeSquares;
     private SquareSet mineSquares;
 
-    public CSP(SquareSet variables, HashMap<Square, ArrayList<Integer>> domains) {
+    public CSP(SquareSet variables, HashMap<Square, int[]> domains) {
         this.variables = variables;
         this.domains = domains;
         this.constraints = new HashMap<>();
@@ -52,8 +52,8 @@ public class CSP {
         SquareSet updatedSquareList = new SquareSet(variables.width, variables.height);
         int updatedMineCount = mineIndicator;
         for (Square square : squares.getSquares()) {
-            if (domains.get(square).size() == 1) {
-                updatedMineCount -= domains.get(square).get(0);
+            if (domains.get(square).length == 1) {
+                updatedMineCount -= domains.get(square)[0];
             } else {
                 updatedSquareList.add(square);
             }
@@ -152,8 +152,8 @@ public class CSP {
         HashMap<Square, Integer> assignment = new HashMap<>();
         System.out.println("Total of " + constrainedVariables.size() + " squares of interest");
         for (Square square : constrainedVariables.getSquares()) {
-            if (domains.get(square).size() == 1) {
-                assignment.put(square, domains.get(square).get(0));
+            if (domains.get(square).length == 1) {
+                assignment.put(square, domains.get(square)[0]);
             }
         }
         System.out.println(assignment.size() + " squares assigned by default");
@@ -175,8 +175,8 @@ public class CSP {
         // Find the squares that are consistently mines or not mines
         HashMap<Square, Integer> solutionSummary = new HashMap<>();
         for (Square square : constrainedVariables.getSquares()) {
-            if (domains.get(square).size() == 1) {
-                int summary = domains.get(square).get(0) * 100;
+            if (domains.get(square).length == 1) {
+                int summary = domains.get(square)[0] * 100;
                 solutionSummary.put(square, summary);
                 System.out.println(square.locationString() + " is summarized as " + summary);
                 continue;
@@ -223,18 +223,19 @@ public class CSP {
     }
 
     public void reduceDomain(Square square, int domainToRemove) {
-        if (domains.get(square).size() == 1) {
-            if (domains.get(square).get(0) == domainToRemove) {
+        if (domains.get(square).length == 1) {
+            if (domains.get(square)[0] == domainToRemove) {
                 System.out.println("--------------- CONFLICTING REDUCTIONS -----------------");
             }
             return;
         }
         if (domainToRemove == 1) {
             safeSquares.add(square);
+            this.domains.put(square, new int[] { 0 });
         } else {
             mineSquares.add(square);
+            this.domains.put(square, new int[] { 1 });
         }
-        this.domains.get(square).remove(Integer.valueOf(domainToRemove));
         this.updateKnownSquaresConstraints(square);
         System.out.println("Square " + square.locationString() + " discarded domain " + domainToRemove);
     }
@@ -276,9 +277,9 @@ public class CSP {
     }
 
     public void updateKnownSquaresConstraints(Square square) {
-        if (constraints.containsKey(square) && domains.get(square).size() == 1) {
+        if (constraints.containsKey(square) && domains.get(square).length == 1) {
             for (MinesweeperConstraint constraint : constraints.get(square)) {
-                constraint.removeSquare(square, domains.get(square).get(0));
+                constraint.removeSquare(square, domains.get(square)[0]);
                 System.out.println("Updated constraints for " + square.locationString());
             }
             constraints.remove(square);
