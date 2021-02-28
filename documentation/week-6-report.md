@@ -24,6 +24,6 @@ My lesson. Better to work incrementally, commit regularly and check that everyth
 
 ### What remains undone?
 
-All my time went to fixing the algorithm and making the data structures. Documentation is where it was two weeks ago, except for JavaDoc. This weekly report is a bit late. I have not done my code review, and neither has my partner. I try to do it early next week, even if I can't get the points, just so they can get some feedback before demos. Also I have not even begun performance testing. That's something I really need to get done before the demo sessions. I can live with only getting the documentation done in time for final submission.
+All my time went to fixing the algorithm and making the data structures. Documentation is where it was two weeks ago, except for JavaDoc. This weekly report is a bit late. I have not done my code review, and neither has my partner. I try to do it early next week, even if I can't get the points, just so they can get some feedback before demos. Also I have not even begun performance testing. That's something I really need to get done before the demo sessions. I can live with only getting the documentation done in time for final submission. I should also probably add unit testing for the data structures and for all the new methods in the algorithm.
 
 ### Hours worked: ~24
