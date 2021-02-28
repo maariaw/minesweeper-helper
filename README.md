@@ -17,6 +17,7 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
   - [Week three](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-3-report.md)
   - [Week four](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-4-report.md)
   - [Week five](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-5-report.md)
+  - [Week six](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-6-report.md)
   
 ## Tests and checks
 
