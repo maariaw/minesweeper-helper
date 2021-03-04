@@ -1,7 +1,6 @@
 
 package minesweeper.structures;
 
-import java.util.Arrays;
 import minesweeper.model.Square;
 
 public class SquareSet {

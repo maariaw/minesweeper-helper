@@ -346,7 +346,7 @@ public class CSP {
      * until all constraints are non-trivial.
      *
      * @return True if there were trivial constraints
-     * @see MinesweeperConstraint#triviality() 
+     * @see MinesweeperConstraint#triviality()
      * @see #reduceDomain(minesweeper.model.Square, int)
      */
     public boolean updateConstraints() {

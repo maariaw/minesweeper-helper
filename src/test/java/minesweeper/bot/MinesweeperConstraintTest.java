@@ -76,4 +76,19 @@ public class MinesweeperConstraintTest {
         MinesweeperConstraint other = new MinesweeperConstraint(mines, otherSquares);
         assertTrue(this.constraint.equals(other));
     }
+    
+    @Test
+    public void constraintsAreNotEqualIfMinesDiffer() {
+        MinesweeperConstraint other = new MinesweeperConstraint(mines + 1, variables);
+        assertFalse(this.constraint.equals(other));
+    }
+    
+    @Test
+    public void constraintsAreNotEqualIfSquaresDiffer() {
+        SquareSet otherSquares = new SquareSet(variables.width, variables.height);
+        otherSquares.addAll(variables);
+        otherSquares.add(new Square(0, 1));
+        MinesweeperConstraint other = new MinesweeperConstraint(mines, otherSquares);
+        assertFalse(this.constraint.equals(other));
+    }
 }
