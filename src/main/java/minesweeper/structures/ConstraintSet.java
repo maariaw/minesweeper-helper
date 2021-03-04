@@ -87,7 +87,13 @@ public class ConstraintSet {
     
     public boolean contains(MinesweeperConstraint constraint) {
         MyList<MinesweeperConstraint> constraintsAtIndex = getListByValue(constraint);
-        return constraintsAtIndex.contains(constraint);
+        boolean contains = false;
+        for (int i = 0; i < constraintsAtIndex.size(); i++) {
+            if (constraintsAtIndex.get(i).equals(constraint)) {
+                contains = true;
+            }
+        }
+        return contains;
     }
 
     public int size() {

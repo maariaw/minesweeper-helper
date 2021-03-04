@@ -28,6 +28,9 @@ public class SquareMap<Type> {
     }
     
     public Type get(Square square) {
+        if (this.map[square.getX()][square.getY()] == null) {
+            return null;
+        }
         return (Type) this.map[square.getX()][square.getY()].getValue();
     }
     
