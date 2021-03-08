@@ -14,6 +14,8 @@ The most important testing during the development was to run the game and see th
 
 ## Performance testing
 
+### Method
+
 Conveniently the Minesweeper template also included a template program for performance testing. I modeleled my performance testing after [Studholme (2000)](http://www.cs.toronto.edu/~cvs/minesweeper/minesweeper.pdf) and [Becerra (2015)](https://dash.harvard.edu/bitstream/handle/1/14398552/BECERRA-SENIORTHESIS-2015.pdf) to be able to make comparisons. The dimensions of the board on beginner and intermediate settings differed between the articles, and I also wanted to include testing for the default dimensions for each difficulty in this Minesweeper. So here are the settings I tested:
 
 * Beginner - 10 mines
@@ -28,9 +30,9 @@ Conveniently the Minesweeper template also included a template program for perfo
 
 I made the bot play 100 sets of 100 games for each setting and calculated the means and standard deviations of victory rates. The tests can be replicated by running `$ ./gradlew headlessTest` in the root of the project. You may want to add the argument `--console=plain` to get rid of the status bar, since it gets in the way of the text UI. The program will ask to type in the desired settings. The test results can be found in the file text.txt, also in the root of the project.
 
-### Accuracy
+### Results
 
-
+Right away it must be stated that the results of this bot are not directly comparable with the algorithms implemented by Studholme (2000) or Becerra (2015) due to the differing implementations of Minesweeper games these algorithms are solving. Most notably this Minesweeper offers the player a luxurious 3x3 starting area of open squares and generates the board around that. Most other implementations are pre-generated, and you only get an open field if you happen to open one. If the game guarantees a safe first move, it might do so by moving a mine elsewhere if required. Hence my bot has somewhat inflated victory rates. Still, the shortcomings of my bot are not in its accuracy, but in its efficacy in terms of processing power.
 
 to be included:
 - Results of empirical testing presented in graphical form
