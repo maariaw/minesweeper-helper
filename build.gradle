@@ -76,5 +76,10 @@ build.dependsOn javadoc
 task headlessTest(type:JavaExec) {
    classpath = sourceSets.main.runtimeClasspath
    main = 'minesweeper.TestApp'
+   standardInput = System.in
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs = ['-Xms512m', '-Xmx4096m']
 }
 

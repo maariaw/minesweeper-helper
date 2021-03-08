@@ -123,7 +123,6 @@ public class CSPTest {
         MyList<Square> solutionSquares = summary.keySet();
         for (int i = 0; i < solutionSquares.size(); i++) {
             Square square = solutionSquares.get(i);
-//        for (Square square : summary.keySet().getContent()) {
             assertEquals((Integer) 100, summary.get(square));
         }
     }
@@ -135,7 +134,6 @@ public class CSPTest {
         MyList<Square> solutionSquares = summary.keySet();
         for (int i = 0; i < solutionSquares.size(); i++) {
             Square square = solutionSquares.get(i);
-//        for (Square square : summary.keySet().getContent()) {
             assertEquals((Integer) 0, summary.get(square));
         }
     }
@@ -147,7 +145,6 @@ public class CSPTest {
         MyList<Square> solutionSquares = summary.keySet();
         for (int i = 0; i < solutionSquares.size(); i++) {
             Square square = solutionSquares.get(i);
-//        for (Square square : summary.keySet().getContent()) {
             assertTrue(summary.get(square) > 0 && summary.get(square) < 100);
         }
     }

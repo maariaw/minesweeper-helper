@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import minesweeper.model.GameStats;
@@ -38,20 +39,26 @@ public class TestApp {
     }
 
     public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        System.out.println("Type the desired settings for the test:");
+        System.out.println("Width (squares):");
+        int width = input.nextInt();
+        System.out.println("Height (squares):");
+        int height = input.nextInt();
+        System.out.println("Number of mines:");
+        int mines = input.nextInt();
+        System.out.println("Name for settings:");
+        String name = input.next();
+        System.out.println("Thank you! Testing will start now. Results can be found in test.txt in project root.");
+
         //Sets the out stream to file test.txt in root of project.
         try {
             System.setOut(new PrintStream(new File("test.txt")));
         } catch (Exception e) {
 
         }
-
-        System.out.println("This test is for Expert\n");
-
-        int width = 30;
-        int height = 16;
-        int mines = 99;
-
         //Print the used parameters
+        System.out.println("Settings: " + name + "\n");
         System.out.println("Board width: " + width);
         System.out.println("Board height: " + height);
         System.out.println("Number of mines: " + mines);
@@ -61,15 +68,10 @@ public class TestApp {
         int sum = 0;
 
         //Play a 100 sets of 100 games
-        for (int set = 0; set < 100; set++) {
+        for (int set = 0; set < 2; set++) {
+            Random rng = new Random();
             //Play 100 games and save the winrate
-            int wonGames = 0;
-            for (int game = 0; game < 100; game++) {
-                TestApp app = new TestApp(new Random().nextLong(), width, height, mines);
-                if (app.board.gameWon) {
-                    wonGames++;
-                }
-            }
+            int wonGames = hundredGames(rng, width, height, mines);
             winrates[set] = wonGames;
             sum += wonGames;
             System.out.println("\nSet " + set + " had a win rate of " + wonGames + "%\n");
@@ -89,5 +91,16 @@ public class TestApp {
         //Print results
         System.out.println("Mean: " + mean);
         System.out.println("Standard deviation: " + deviation);
+    }
+
+    private static int hundredGames(Random random, int width, int height, int mines) {
+        int wonGames = 0;
+        for (int game = 0; game < 100; game++) {
+            TestApp app = new TestApp(random.nextLong(), width, height, mines);
+            if (app.board.gameWon) {
+                wonGames++;
+            }
+        }
+        return wonGames;
     }
 }

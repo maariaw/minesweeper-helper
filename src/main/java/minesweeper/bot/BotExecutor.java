@@ -30,6 +30,9 @@ public class BotExecutor extends Thread {
             this.queue.offer(move);
             this.board.makeMove(move);
         }
+//        // This line can be used to quickly see if game was completed and if
+//        // the bot won
+//        System.out.println(board.gameWon);
     }
 
 }
