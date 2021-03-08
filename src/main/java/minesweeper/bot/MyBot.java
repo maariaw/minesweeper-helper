@@ -114,7 +114,7 @@ public class MyBot implements Bot {
             int mysteryMines = board.getUnflaggedMines() - sumOfMineProbability / 100;
             int mysteryChance = mysteryMines * 100 / mysterySquares.size();
             lowestLikelihood = mysteryChance;
-            leastLikelyMine = mysterySquares.pop();
+            leastLikelyMine = mysterySquares.getSquares()[0];
         } else {
             lowestLikelihood = 100;
             leastLikelyMine = new Square(0, 0);

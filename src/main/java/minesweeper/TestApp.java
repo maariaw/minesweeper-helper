@@ -15,15 +15,15 @@ import minesweeper.model.Move;
 import minesweeper.model.Board;
 import minesweeper.generator.MinefieldGenerator;
 import minesweeper.bot.Bot;
-import minesweeper.bot.TestBot;
 import minesweeper.bot.BotExecutor;
+import minesweeper.bot.MyBot;
 
 public class TestApp {
 
     public GameStats gameStats;
     public Board board;
     /* Place your bot here */
-    public Bot bot = new TestBot();
+    public Bot bot = new MyBot();
 
     public TestApp(long seed, int width, int height, int mines) {
         board = new Board(new MinefieldGenerator(seed), width, height, mines);
@@ -38,19 +38,6 @@ public class TestApp {
     }
 
     public static void main(String[] args) {
-        /*
-         * !NOTE!
-         * Feel free to rewrite/replace this code to fit your needs.
-         * !NOTE!
-         */
-
-        //Values saved as Pairs, this is needed to access the values of both board and gamestats.
-        ArrayList<Pair<GameStats, Board>> stats = new ArrayList<>();
-        //Play 100 games and save the stats and board to array
-        for (int i = 0; i < 100; i++) {
-            TestApp app = new TestApp(new Random().nextLong(), 10, 16, 50);
-            stats.add(new Pair<GameStats, Board>(app.gameStats, app.board));
-        }
         //Sets the out stream to file test.txt in root of project.
         try {
             System.setOut(new PrintStream(new File("test.txt")));
@@ -58,12 +45,49 @@ public class TestApp {
 
         }
 
-        //Print the stats, board and game ending status to file.
-        stats.stream().forEach(s -> {
-            System.out.println("---------------------");
-            System.out.println("Game: " + s.getValue().gameWon);
-            System.out.println(s.getValue());
-            s.getKey().moves.stream().forEach(k -> System.out.println(k + " at (" + k.x + "," + k.y + ")"));
-        });
+        System.out.println("This test is for Expert\n");
+
+        int width = 30;
+        int height = 16;
+        int mines = 99;
+
+        //Print the used parameters
+        System.out.println("Board width: " + width);
+        System.out.println("Board height: " + height);
+        System.out.println("Number of mines: " + mines);
+
+        //Record rate of won games
+        int[] winrates = new int[100];
+        int sum = 0;
+
+        //Play a 100 sets of 100 games
+        for (int set = 0; set < 100; set++) {
+            //Play 100 games and save the winrate
+            int wonGames = 0;
+            for (int game = 0; game < 100; game++) {
+                TestApp app = new TestApp(new Random().nextLong(), width, height, mines);
+                if (app.board.gameWon) {
+                    wonGames++;
+                }
+            }
+            winrates[set] = wonGames;
+            sum += wonGames;
+            System.out.println("\nSet " + set + " had a win rate of " + wonGames + "%\n");
+        }
+
+        //Calculate mean
+        double mean = 1.0 * sum / 100;
+        //Calculate standard deviation
+        double errorSum = 0;
+        for (int i = 0; i < 100; i++) {
+            double distance = winrates[i] - mean;
+            double error = distance * distance;
+            errorSum += error;
+        }
+        double deviation = Math.sqrt(errorSum / 99);
+
+        //Print results
+        System.out.println("Mean: " + mean);
+        System.out.println("Standard deviation: " + deviation);
     }
 }

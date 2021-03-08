@@ -52,8 +52,9 @@ public class MinesweeperConstraint {
      * @param knownValue 0 if the square is known to be safe, 1 if known to be mine
      */
     public void removeSquare(Square square, Integer knownValue) {
-        mineIndicator -= knownValue;
-        squares.remove(square);
+        if (squares.remove(square)) {
+            mineIndicator -= knownValue;
+        }
     }
 
     /**

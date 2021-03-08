@@ -16,7 +16,7 @@ public class MinesweeperConstraintTest {
     private SquareSet variables;
     private SquareMap<Integer> correctAssignment;
     private MinesweeperConstraint constraint;
-    
+
     @Before
     public void setUp() {
         this.rng = new Random(6332);
@@ -36,12 +36,12 @@ public class MinesweeperConstraintTest {
         }
         this.constraint = new MinesweeperConstraint(mines, variables);
     }
-    
+
     @Test
     public void isSatisfiedWhenCorrectAssignment() {
         assertTrue(constraint.isSatisfied(correctAssignment));
     }
-    
+
     @Test
     public void isNotSatisfiedWhenIncorrectAssignment() {
         Square deviant = this.variables.getSquares()[0];
@@ -54,7 +54,7 @@ public class MinesweeperConstraintTest {
         
         assertFalse(constraint.isSatisfied(incorrectAssignment));
     }
-    
+
     @Test
     public void isSatisfiedWhenAssignmentIncomplete() {
         Square missing = this.variables.getSquares()[0];
@@ -76,13 +76,13 @@ public class MinesweeperConstraintTest {
         MinesweeperConstraint other = new MinesweeperConstraint(mines, otherSquares);
         assertTrue(this.constraint.equals(other));
     }
-    
+
     @Test
     public void constraintsAreNotEqualIfMinesDiffer() {
         MinesweeperConstraint other = new MinesweeperConstraint(mines + 1, variables);
         assertFalse(this.constraint.equals(other));
     }
-    
+
     @Test
     public void constraintsAreNotEqualIfSquaresDiffer() {
         SquareSet otherSquares = new SquareSet(variables.width, variables.height);
@@ -90,5 +90,13 @@ public class MinesweeperConstraintTest {
         otherSquares.add(new Square(0, 1));
         MinesweeperConstraint other = new MinesweeperConstraint(mines, otherSquares);
         assertFalse(this.constraint.equals(other));
+    }
+
+    @Test
+    public void removingExistingSquareDecreasesIndicatorByGivenValue() {
+        int reduction = 1;
+        Square toRemove = variables.getSquares()[0];
+        constraint.removeSquare(toRemove, reduction);
+        assertEquals(mines - reduction, constraint.mineIndicator);
     }
 }
