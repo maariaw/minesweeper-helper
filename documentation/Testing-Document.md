@@ -26,7 +26,7 @@ Conveniently the Minesweeper template also included a template program for perfo
 * Expert - 99 mines
   * All: 30 x 16
 
-I made the bot play 100 sets of 100 games for each setting and calculated the means and standard deviations of victory rates. The tests can be replicated by running the `TestApp` class in the project, after choosing the desired settings in the code. The test results can be found in the file text.txt at the root of the project.
+I made the bot play 100 sets of 100 games for each setting and calculated the means and standard deviations of victory rates. The tests can be replicated by running `$ ./gradlew headlessTest` in the root of the project. You may want to add the argument `--console=plain` to get rid of the status bar, since it gets in the way of the text UI. The program will ask to type in the desired settings. The test results can be found in the file text.txt, also in the root of the project.
 
 ### Accuracy
 
@@ -34,4 +34,3 @@ I made the bot play 100 sets of 100 games for each setting and calculated the me
 
 to be included:
 - Results of empirical testing presented in graphical form
-- Tests should ideally be a runnable program. This makes repeating the tests easy
