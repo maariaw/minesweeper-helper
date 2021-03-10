@@ -94,26 +94,25 @@ public class CSPTest {
     public void backTrackingSearchFindsAllZeroAssignment() {
         csp.setConstrainedVariables(variables);
         csp.addConstraint(variables, 0);
-        MyList<SquareMap<Integer>> solutions = csp.startSearch();
-        SquareMap<Integer> assignment = solutions.get(0);
+        SquareMap<Integer> solutions = csp.findSafeSolutions(variables);
         for (Square square : variables.getSquares()) {
-            assertTrue(assignment.get(square) == 0);
+            assertTrue(solutions.get(square) == 0);
         }
     }
 
     @Test
     public void backTrackingSearchFindsAnAssignmentWhenNoConstraints() {
         csp.setConstrainedVariables(variables);
-        MyList<SquareMap<Integer>> solutions = csp.startSearch();
-        assertFalse(solutions.size() == 0);
+        csp.startSearch();
+        assertFalse(csp.getSolutionCount() == 0);
     }
 
     @Test
     public void backTrackingSearchReturnsNoSolutionIfConstraintsCantBeSatisfied() {
         csp.setConstrainedVariables(variables);
         csp.addConstraint(variables, 999);
-        MyList<SquareMap<Integer>> solutions = csp.startSearch();
-        assertTrue(solutions.size() == 0);
+        csp.startSearch();
+        assertTrue(csp.getSolutionCount() == 0);
     }
 
     @Test

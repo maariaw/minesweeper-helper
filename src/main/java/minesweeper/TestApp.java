@@ -5,8 +5,6 @@ package minesweeper;
 
 import java.io.File;
 import java.io.PrintStream;
-import javafx.util.Pair;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
@@ -42,14 +40,16 @@ public class TestApp {
         Scanner input = new Scanner(System.in);
         System.out.println("Type the desired settings for the test:");
         System.out.println("Width (squares):");
-        int width = input.nextInt();
+        int width = Integer.valueOf(input.nextLine());
         System.out.println("Height (squares):");
-        int height = input.nextInt();
+        int height = Integer.valueOf(input.nextLine());
         System.out.println("Number of mines:");
-        int mines = input.nextInt();
+        int mines = Integer.valueOf(input.nextLine());
         System.out.println("Name for settings:");
-        String name = input.next();
+        String name = input.nextLine();
         System.out.println("Thank you! Testing will start now. Results can be found in test.txt in project root.");
+
+        int n = 100;
 
         //Sets the out stream to file test.txt in root of project.
         try {
@@ -62,31 +62,32 @@ public class TestApp {
         System.out.println("Board width: " + width);
         System.out.println("Board height: " + height);
         System.out.println("Number of mines: " + mines);
+        System.out.println(n + " sets of 100 games");
 
         //Record rate of won games
-        int[] winrates = new int[100];
+        int[] winrates = new int[n];
         int sum = 0;
 
         //Play a 100 sets of 100 games
-        for (int set = 0; set < 2; set++) {
+        for (int set = 1; set <= n; set++) {
             Random rng = new Random();
             //Play 100 games and save the winrate
             int wonGames = hundredGames(rng, width, height, mines);
-            winrates[set] = wonGames;
+            winrates[set - 1] = wonGames;
             sum += wonGames;
             System.out.println("\nSet " + set + " had a win rate of " + wonGames + "%\n");
         }
 
         //Calculate mean
-        double mean = 1.0 * sum / 100;
+        double mean = 1.0 * sum / n;
         //Calculate standard deviation
         double errorSum = 0;
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < n; i++) {
             double distance = winrates[i] - mean;
             double error = distance * distance;
             errorSum += error;
         }
-        double deviation = Math.sqrt(errorSum / 99);
+        double deviation = Math.sqrt(errorSum / (n - 1));
 
         //Print results
         System.out.println("Mean: " + mean);
@@ -95,8 +96,10 @@ public class TestApp {
 
     private static int hundredGames(Random random, int width, int height, int mines) {
         int wonGames = 0;
+        TestApp app;
         for (int game = 0; game < 100; game++) {
-            TestApp app = new TestApp(random.nextLong(), width, height, mines);
+            long seed = Math.abs(random.nextLong());
+            app = new TestApp(seed, width, height, mines);
             if (app.board.gameWon) {
                 wonGames++;
             }

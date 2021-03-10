@@ -80,6 +80,6 @@ task headlessTest(type:JavaExec) {
 }
 
 tasks.withType(JavaExec) {
-    jvmArgs = ['-Xms512m', '-Xmx4096m']
+    jvmArgs = ['-Xms4G', '-Xmx4G']
 }
 

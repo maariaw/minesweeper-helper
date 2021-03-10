@@ -34,6 +34,8 @@ public class CSP {
     private SquareSet constrainedVariables;
     private SquareSet safeSquares;
     private SquareSet mineSquares;
+    private long solutionCount;
+    private SquareMap<Long> solutionSummary;
 
     public CSP(SquareSet variables, SquareMap<int[]> domains) {
         this.variables = variables;
@@ -129,19 +131,18 @@ public class CSP {
      * assignments that satisfy all constraints.
      *
      * @param assignment A mapping of integers to squares representing the solution in the works
-     * @param solutions A list of already found solutions
      * @see #isConsistent(minesweeper.model.Square, minesweeper.structures.SquareMap)
      */
-    private void backtrackingSearch(SquareMap<Integer> assignment, MyList<SquareMap<Integer>> solutions) {
+    private void backtrackingSearch(SquareMap<Integer> assignment) {
         if (assignment.size() == this.constrainedVariables.size()) {
             // If all the squares that are currently of interest have a number
             // (0 for no mine or 1 for a mine) assigned, a solution has been found
             // The recursion starts folding back.
-            SquareMap<Integer> solution = assignment.createAClone();
-            solutions.add(solution);
+            addSolution(assignment);
             return;
         }
 
+        // Looking for a square that has not yet been assigned
         Square unAssigned = null;
         for (Square square : constrainedVariables.getSquares()) {
             if (!assignment.containsKey(square)) {
@@ -150,37 +151,42 @@ public class CSP {
             }
         }
 
+        // Check for consistency with both possible values in turn
         for (Integer domainValue : this.domains.get(unAssigned)) {
-            // The algorithm handles copies created of the assignments
-            // so that changes made down the line do not affect the
-            // assignment when backtracking
-            SquareMap<Integer> localAssignment = assignment.createAClone();
-            localAssignment.put(unAssigned, domainValue);
-            if (isConsistent(unAssigned, localAssignment)) {
+            assignment.put(unAssigned, domainValue);
+            if (isConsistent(unAssigned, assignment)) {
                 // Here the magic of recursion happens
-                backtrackingSearch(localAssignment, solutions);
+                backtrackingSearch(assignment);
             }
         }
+        // The square must be removed from the assignment before backtracking
+        // happens
+        assignment.remove(unAssigned);
     }
 
     /**
      * Initialize the solutions and assignment and start the backtracking search.
      *
-     * @return A list of assignments that satisfy current constraints
+     * The solutions are a mapping of squares to the amount of solutions that
+     * assign them as mines. The assignment maps a square to either 1 if the
+     * square is a mine in the solution, or to 0 if not.
+     *
      * @see #backtrackingSearch(minesweeper.structures.SquareMap, minesweeper.structures.MyList)
      */
-    public MyList<SquareMap<Integer>> startSearch() {
-        MyList<SquareMap<Integer>> solutions = new MyList<>();
+    public void startSearch() {
+        this.solutionCount = 0;
+        this.solutionSummary = new SquareMap<>(variables.width, variables.height);
         SquareMap<Integer> assignment = new SquareMap<>(variables.width, variables.height);
         // First any known squares are added to the assignment, so they don't
         // unnecessarily bloat the backtracking
         for (Square square : constrainedVariables.getSquares()) {
+            // Also initialising solution summary
+            solutionSummary.put(square, (long) 0);
             if (domains.get(square).length == 1) {
                 assignment.put(square, domains.get(square)[0]);
             }
         }
-        backtrackingSearch(assignment, solutions);
-        return solutions;
+        backtrackingSearch(assignment);
     }
 
     /**
@@ -193,43 +199,39 @@ public class CSP {
      */
     public SquareMap<Integer> findSafeSolutions(SquareSet constrainedVariables) {
         this.constrainedVariables = constrainedVariables;
-        MyList<SquareMap<Integer>> solutions = startSearch();
+
+        startSearch();
+
+        SquareMap<Integer> mineProbabilities = new SquareMap<>(variables.width, variables.height);
 
         // Find the squares that are consistently mines or not mines
-        SquareMap<Integer> solutionSummary = new SquareMap<>(variables.width, variables.height);
         for (Square square : constrainedVariables.getSquares()) {
             if (domains.get(square).length == 1) {
-                // The known squares don't need to iterate through solutions
+                // The known squares don't need to go through solution summary
                 int summary = domains.get(square)[0] * 100;
-                solutionSummary.put(square, summary);
+                mineProbabilities.put(square, summary);
                 continue;
             }
-            int mineSolutions = 0;
-            for (int i = 0; i < solutions.size(); i++) {
-                // Fetch the assignment this square has in each solution
-                SquareMap<Integer> solution = solutions.get(i);
-                if (solution.get(square).equals(1)) {
-                    mineSolutions++;
-                }
-            }
+            long mineSolutions = solutionSummary.get(square);
             if (mineSolutions == 0) {
                 // None of the solutions assigned this square as mine
-                solutionSummary.put(square, 0);
+                mineProbabilities.put(square, 0);
                 // Record this square as known safe
                 reduceDomain(square, 1);
-            } else if (mineSolutions == solutions.size()) {
+            } else if (mineSolutions == solutionCount) {
                 // This square is mine in all solutions
-                solutionSummary.put(square, 100);
+                mineProbabilities.put(square, 100);
                 // Record this square as known mine
                 reduceDomain(square, 0);
             } else {
                 // This is not an exact percentage, just an approximation to guide
                 // the bot in case no safe squares are found
-                int minePercentage = mineSolutions * 100 / solutions.size();
-                solutionSummary.put(square, minePercentage);
+                double mineP =  1.0 * mineSolutions / solutionCount;
+                int minePercentage = (int) (mineP * 100);
+                mineProbabilities.put(square, minePercentage);
             }
         }
-        return solutionSummary;
+        return mineProbabilities;
     }
 
     public SquareMap<MyList<MinesweeperConstraint>> getConstraints() {
@@ -373,5 +375,26 @@ public class CSP {
             }
         }
         return nonTrivial != constraintList.size();
+    }
+    
+    /**
+     * Updates the total of solutions found and adds one to the tally of mine
+     * solutions for each square that is assigned as mine in this solution.
+     * @param solution The solution to be tallied
+     */
+    private void addSolution(SquareMap<Integer> solution) {
+        for (Square square : this.constrainedVariables.getSquares()) {
+            Long mineSolutions = solutionSummary.get(square) + solution.get(square);
+            solutionSummary.put(square, mineSolutions);
+        }
+        solutionCount++;
+    }
+
+    /**
+     * This method is to facilitate testing.
+     * @return The amount of solutions found in last backtracking search.
+     */
+    public Long getSolutionCount() {
+        return solutionCount;
     }
 }
