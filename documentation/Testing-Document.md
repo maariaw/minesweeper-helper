@@ -38,3 +38,13 @@ The algorithms yielding the following results from Studholme and Becerra are imp
 
 ![Column chart](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/images/comparison-figure.png)
 
+Mines | Dimensions | Mean | SD
+----- | ---------- | ---- | --
+10 | 8 x 8 | 88.05 | 3.06
+10 | 9 x 9 | 96.6 | 1.77
+10 | 10 x 10 | 98.49 | 1.24
+40 | 15 x 13 | 57.73 | 4.46
+40 | 16 x 16 | 86.47 | 3.33
+99 | 30 x 16 | 43.03 | 4.64
+
+The mean win ratio and standard deviation of MyBot on different board settings
