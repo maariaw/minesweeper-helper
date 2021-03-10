@@ -32,7 +32,9 @@ I made the bot play 100 sets of 100 games for each setting and calculated the me
 
 ### Results
 
-Right away it must be stated that the results of this bot are not directly comparable with the algorithms implemented by Studholme (2000) or Becerra (2015) due to the differing implementations of Minesweeper games these algorithms are solving. Most notably this Minesweeper offers the player a luxurious 3x3 starting area of open squares and generates the board around that. Most other implementations are pre-generated, and you only get an open field if you happen to open one. If the game guarantees a safe first move, it might do so by moving a mine elsewhere if required. Hence my bot has somewhat inflated victory rates. Still, the shortcomings of my bot are not in its accuracy, but in its efficacy in terms of processing power.
+Right away it must be stated that although I will present win ratios from Studholme (2000) and Becerra (2015) side by side with mine, the results are not directly comparable due to the differing implementations of Minesweeper games these algorithms are solving. Most notably this Minesweeper offers the player a luxurious 3x3 starting area of open squares and generates the board around that. Most other implementations are pre-generated, and you only get an open field if you happen to open one. Studholme reports results for another rule variation, where an area of low mine density is offered as a starting point. The resulting win ratios are higher than for standard rules, so I chose them for the comparisons, but the conditions still cannot be said to be equivalent. Also unfortunately Studholme only reports his findings as a column chart, so lacking exact figures I just estimated from the images. From Becerras reasoning about choosing a starting point can be inferred that their version of the game does not even offer a safe first move. Hence their win ratios are much lower.
 
-to be included:
-- Results of empirical testing presented in graphical form
+The algorithms yielding the following results from Studholme and Becerra are implementations of coupled subsets constraint satisfaction problem solvers (CSCSP). I aimed to create a CSCSP as well, but mine lacks many of the finer qualities of one.
+
+![Column chart](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/images/comparison-figure.png)
+

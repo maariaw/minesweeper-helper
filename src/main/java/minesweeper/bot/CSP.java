@@ -376,7 +376,7 @@ public class CSP {
         }
         return nonTrivial != constraintList.size();
     }
-    
+
     /**
      * Updates the total of solutions found and adds one to the tally of mine
      * solutions for each square that is assigned as mine in this solution.
