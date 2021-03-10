@@ -36,6 +36,6 @@ The algorithms yielding the following results from Studholme and Becerra are imp
 
 ![Column chart](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/images/comparison-figure.png)
 
-The mean win ratio and standard deviation of MyBot on different board settings:
+The mean win percentage and standard deviation of MyBot on different board settings:
 
 ![Table](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/images/mybot-table.png)
