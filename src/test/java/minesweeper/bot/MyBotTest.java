@@ -2,9 +2,10 @@
 package minesweeper.bot;
 
 import java.util.ArrayList;
+import java.util.Random;
+import minesweeper.TestApp;
 import minesweeper.generator.MinefieldGenerator;
 import minesweeper.model.Board;
-import minesweeper.model.Highlight;
 import minesweeper.model.Move;
 import minesweeper.model.MoveType;
 import org.junit.Before;
@@ -15,12 +16,14 @@ public class MyBotTest {
     private Bot bot;
     private MinefieldGenerator generator;
     private Board board;
+    private Random rng;
 
     @Before
     public void setUp() {
         this.bot = BotSelect.getBot();
         this.generator = new MinefieldGenerator();
         this.board = new Board(generator, 10, 10, 10);
+        this.rng = new Random();
     }
 
     @Test
@@ -75,4 +78,53 @@ public class MyBotTest {
             assertTrue(move.type == MoveType.HIGHLIGHT);
         }
     }
+
+    @Test
+    public void allMediumMapLowMineDensityLossesAreGuesses() {
+        for (int game = 0; game < 500; game++) {
+            long seed = Math.abs(rng.nextLong());
+            TestApp app = new TestApp(seed, 18, 18, 40);
+            if (app.board.gameLost) {
+                MyBot lostBot = (MyBot) app.bot;
+                assertTrue(lostBot.wasGuess);
+            }
+        }
+    }
+
+    @Test
+    public void allMediumMapHighMineDensityLossesAreGuesses() {
+        for (int game = 0; game < 100; game++) {
+            long seed = Math.abs(rng.nextLong());
+            TestApp app = new TestApp(seed, 18, 18, 80);
+            if (app.board.gameLost) {
+                MyBot lostBot = (MyBot) app.bot;
+                assertTrue(lostBot.wasGuess);
+            }
+        }
+    }
+
+    @Test
+    public void allBigMapLowMineDensityLossesAreGuesses() {
+        for (int game = 0; game < 100; game++) {
+            long seed = Math.abs(rng.nextLong());
+            TestApp app = new TestApp(seed, 30, 30, 100);
+            if (app.board.gameLost) {
+                MyBot lostBot = (MyBot) app.bot;
+                assertTrue(lostBot.wasGuess);
+            }
+        }
+    }
+
+//    // Even these 10 games take a bit too long to run every time
+//    @Test
+//    public void allBigMapHighMineDensityLossesAreGuesses() {
+//        for (int game = 0; game < 10; game++) {
+//            long seed = Math.abs(rng.nextLong());
+//            TestApp app = new TestApp(seed, 30, 30, 200);
+//            if (app.board.gameLost) {
+//                MyBot lostBot = (MyBot) app.bot;
+//                assertTrue(lostBot.wasGuess);
+//            }
+//        }
+//    }
 }

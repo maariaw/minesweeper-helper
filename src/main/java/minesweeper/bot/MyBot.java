@@ -32,6 +32,7 @@ public class MyBot implements Bot {
     private GameStats gameStats;
     private CSP csp;
     private SquareSet numberSquares;
+    public boolean wasGuess;
 
     /**
      * Make a single decision based on the given Board state.
@@ -42,6 +43,7 @@ public class MyBot implements Bot {
     @Override
     public Move makeMove(Board board) {
         SquareSet squaresOfInterest = new SquareSet(board.width, board.height);
+        wasGuess = false;
 
         if (board.firstMove) {
             return getFirstMove(board);
@@ -130,6 +132,7 @@ public class MyBot implements Bot {
                 leastLikelyMine = square;
             }
         }
+        wasGuess = true;
         Move riskyMove = new Move(MoveType.OPEN, leastLikelyMine.getX(), leastLikelyMine.getY());
 //        System.out.println("Making a risky move: " + riskyMove.locationString());
         return riskyMove;

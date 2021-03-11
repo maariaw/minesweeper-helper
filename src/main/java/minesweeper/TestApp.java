@@ -67,12 +67,24 @@ public class TestApp {
         //Record rate of won games
         int[] winrates = new int[n];
         int sum = 0;
-
+        Random rng = new Random();
+        boolean allLossesWereGuesses = true;
         //Play a 100 sets of 100 games
         for (int set = 1; set <= n; set++) {
-            Random rng = new Random();
+            int wonGames = 0;
             //Play 100 games and save the winrate
-            int wonGames = hundredGames(rng, width, height, mines);
+            for (int game = 0; game < 100; game++) {
+                long seed = Math.abs(rng.nextLong());
+                TestApp app = new TestApp(seed, width, height, mines);
+                if (app.board.gameWon) {
+                    wonGames++;
+                } else {
+                    MyBot lostBot = (MyBot) app.bot;
+                    if (!lostBot.wasGuess) {
+                        allLossesWereGuesses = false;
+                    }
+                }
+            }
             winrates[set - 1] = wonGames;
             sum += wonGames;
             System.out.println("\nSet " + set + " had a win rate of " + wonGames + "%\n");
@@ -92,18 +104,6 @@ public class TestApp {
         //Print results
         System.out.println("Mean: " + mean);
         System.out.println("Standard deviation: " + deviation);
-    }
-
-    private static int hundredGames(Random random, int width, int height, int mines) {
-        int wonGames = 0;
-        TestApp app;
-        for (int game = 0; game < 100; game++) {
-            long seed = Math.abs(random.nextLong());
-            app = new TestApp(seed, width, height, mines);
-            if (app.board.gameWon) {
-                wonGames++;
-            }
-        }
-        return wonGames;
+        System.out.println("All losses were because of guessing: " + allLossesWereGuesses);
     }
 }
