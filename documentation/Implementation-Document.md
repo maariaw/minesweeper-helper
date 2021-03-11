@@ -18,6 +18,19 @@ This project is a Minesweeper solving algorithm implemented as a bot attached to
 
 ## Flaws and improvements
 
+There are many ways the efficacy of this bot could be improved, if more time could be spent on development. For now, constraints are only checked for triviality, not for overlap. Studholme's (2000) algorithm includes a step where constraints are simplified, if the squares of one constraint are a subset of the squares of another constraint. This would allow more situations to be resolved without backtracking search.
+
+There are also some opportunities for branch cutting during the search. If the total of assigned mines in a suggested assignment exceeds the total of mines on the board, the assigment cannot be a solution, and backtracking should occur. On a smaller scale, the check for constraint satisfaction returns true if all the squares in the constraints haven't yet been assigned. However, if the sum of assigned mines is already greater than the constraint allows, it could return false.
+
+Both Studholme (2000) and Becerra (2015) have studied the strategies of the first move. This implementation of Minesweeper having quite a unique starting pattern, it would be interesting to test the different strategies and find the best.
+
+Not enough thought and testing was put into the guessing function of MyBot for me to be confident in it. For example, in the case of an uninformed square being the least likely to be a mine, the target square should be chosen with some heuristic. Currently the move is taken on quite a haphazard manner.
+
+It would also be cool to develop the UI so that when no safe squares are available, the Help (bot) button would show the estimated probability of each square being a mine on the square.
 
 
 ## Sources
+
+Becerra, D. J. (2015). [*Algorithmic approaches to playing minesweeper*](https://dash.harvard.edu/bitstream/handle/1/14398552/BECERRA-SENIORTHESIS-2015.pdf) (Unpublished bachelor's thesis). Harvard College, Cambridge, Massachusetts, United States.
+
+Studholme, C. (2000). [*Minesweeper as a constraint satisfaction problem*](http://www.cs.toronto.edu/~cvs/minesweeper/minesweeper.pdf) (Unpublished project report). University of Toronto, Toronto, Ontario, Canada.
