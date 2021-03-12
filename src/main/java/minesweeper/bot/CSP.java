@@ -171,7 +171,7 @@ public class CSP {
      * assign them as mines. The assignment maps a square to either 1 if the
      * square is a mine in the solution, or to 0 if not.
      *
-     * @see #backtrackingSearch(minesweeper.structures.SquareMap, minesweeper.structures.MyList)
+     * @see #backtrackingSearch(minesweeper.structures.SquareMap)
      */
     public void startSearch() {
         this.solutionCount = 0;
@@ -261,11 +261,11 @@ public class CSP {
         if (domainToRemove == 1) {
             // This square can not be a mine
             safeSquares.add(square);
-            this.domains.put(square, new int[] { 0 });
+            this.domains.put(square, new int[] {0});
         } else {
             // This square is a sure mine
             mineSquares.add(square);
-            this.domains.put(square, new int[] { 1 });
+            this.domains.put(square, new int[] {1});
         }
         // Update constraints to reflect new knowledge
         this.updateKnownSquaresConstraints(square);

@@ -250,7 +250,7 @@ public class MyBot implements Bot {
         // Domains for CSP is a map of Squares and arrays containing 0 and 1.
         SquareMap<int[]> domains = new SquareMap<>(board.width, board.height);
         for (Square variable : variableList.getSquares()) {
-            domains.put(variable, new int[] { 0, 1 });
+            domains.put(variable, new int[] {0, 1});
         }
 
         return new CSP(variableList, domains);

@@ -18,6 +18,8 @@ plugins {
     id 'checkstyle'
   
     id 'org.openjfx.javafxplugin' version '0.0.8'
+    
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 jacocoTestReport {
@@ -62,7 +64,7 @@ javafx {
 
 application {
     // Define the main class for the application
-    mainClassName = 'minesweeper.App'
+    mainClassName = 'minesweeper.Main'
 }
 
 checkstyle {
@@ -81,5 +83,11 @@ task headlessTest(type:JavaExec) {
 
 tasks.withType(JavaExec) {
     jvmArgs = ['-Xms4G', '-Xmx4G']
+}
+
+shadowJar {
+    archiveBaseName.set('minesweeper-helper')
+    archiveClassifier.set('')
+    archiveVersion.set('')
 }
 

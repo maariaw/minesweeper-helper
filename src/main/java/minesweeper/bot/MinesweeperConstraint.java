@@ -5,6 +5,10 @@ import minesweeper.model.Square;
 import minesweeper.structures.SquareMap;
 import minesweeper.structures.SquareSet;
 
+/**
+ * Class representing a constraint, where the sum of mines in a set of squares
+ * must equal a certain number.
+ */
 public class MinesweeperConstraint {
     private SquareSet squares;
     public int mineIndicator;
