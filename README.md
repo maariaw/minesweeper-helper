@@ -7,6 +7,7 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
 
 ## Documentation
 
+- [User guide](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/User-Guide.md)
 - [Project specification](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/Project-Specification.md)
 - [Implementation Document](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/Implementation-Document.md)
 - [Testing Document](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/Testing-Document.md)
@@ -18,10 +19,37 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
   - [Week four](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-4-report.md)
   - [Week five](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-5-report.md)
   - [Week six](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-6-report.md)
-  
-## Tests and checks
 
-For testing coverage, click the Codecov badge under the title of this document. Alternatively, you can run `$ ./gradlew test` and `$ ./gradlew jacocoTestReport` at the root of the project, and then see `build/reports/jacoco/test/html/index.html`. Only coverage of the `minesweeper.bot` and `minesweeper.structures` packages is reported.
+## Command line functions
+### Running
+```
+$ ./gradlew run
+```
 
-For a Checkstyle report, do `$ ./gradlew check` at the root of the project and then see `build/reports/checkstyle/main.html`.
+### Testing
+```
+$ ./gradlew test
+```
+and for coverage
+```
+$ ./gradlew jacocoTestReport
+```
+Then see `build/reports/jacoco/test/html/index.html`. Only coverage of the `minesweeper.bot` and `minesweeper.structures` packages is reported.
 
+### Checkstyle
+```
+$ ./gradlew check
+```
+Then see `build/reports/checkstyle/main.html`.
+
+### JavaDoc
+```
+$ ./gradlew javadoc
+```
+Then see `build/docs/javadoc/index.html`.
+
+### Creating an executable jar
+```
+$ ./gradlew shadowJar
+```
+It will be located in `build/libs/` as `minesweeper-helper.jar`.
