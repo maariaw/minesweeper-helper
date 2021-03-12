@@ -20,6 +20,10 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
   - [Week five](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-5-report.md)
   - [Week six](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-6-report.md)
 
+## Release
+
+[Final submission](https://github.com/maariaw/minesweeper-helper/releases/tag/v1.0)
+
 ## Command line functions
 ### Running
 ```
