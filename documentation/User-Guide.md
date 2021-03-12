@@ -1,9 +1,7 @@
-under construction
-
 # User Guide
 
 ## Download and run
-Download the executable jar [here](insert link). Run the program, for example with
+Download the executable jar [here](https://github.com/maariaw/minesweeper-helper/releases/latest). Run the program, for example with
 ```
 java -jar minesweeper-helper.jar
 ```
