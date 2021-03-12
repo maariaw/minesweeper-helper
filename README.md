@@ -19,6 +19,8 @@ This is a course project for [Data Structures Lab, spring 2021](https://tiralabr
   - [Week five](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-5-report.md)
   - [Week six](https://github.com/maariaw/minesweeper-helper/blob/master/documentation/week-6-report.md)
   
+JavaDoc for the project can be created by running `$ ./gradlew javadoc`. It can be found in `build/docs/javadoc/index.html`
+
 ## Tests and checks
 
 For testing coverage, click the Codecov badge under the title of this document. Alternatively, you can run `$ ./gradlew test` and `$ ./gradlew jacocoTestReport` at the root of the project, and then see `build/reports/jacoco/test/html/index.html`. Only coverage of the `minesweeper.bot` and `minesweeper.structures` packages is reported.
