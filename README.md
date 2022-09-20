@@ -3,7 +3,9 @@
 [![Build Status](https://travis-ci.com/maariaw/minesweeper-helper.svg?branch=master)](https://travis-ci.com/maariaw/minesweeper-helper)
 [![codecov](https://codecov.io/gh/maariaw/minesweeper-helper/branch/master/graph/badge.svg?token=C1OX7XEAQU)](https://codecov.io/gh/maariaw/minesweeper-helper)
 
-This is a course project for [Data Structures Lab, spring 2021](https://tiralabra.github.io/2021_p3/en/). During the course I will build a bot that assists the player in minesweeper by showing preferable moves and can also be set to play the game independently. I am adding the bots to this [minesweeper template](https://github.com/TiraLabra/minesweeper), so only selects parts in the `minesweeper.bot` package will be my code.
+This is a course project for [Data Structures Lab, spring 2021](https://tiralabra.github.io/2021_p3/en/). During the course I built a bot that assists the player in minesweeper by showing preferable moves and can also be set to play the game independently. I added the bot to this [minesweeper template](https://github.com/TiraLabra/minesweeper), so only selects parts in the `minesweeper.bot` package are my code.
+
+In this project I learned to reflect on my coding process through the weekly reports. This project was also great practice in reading others' code and building on top of it. I was apprehensive about choosing this topic for my course project, since the teacher warned about students having had trouble completing the project. I'm proud of myself for persevering with it, even though progress was slow and painful at times.
 
 ## Documentation
 
